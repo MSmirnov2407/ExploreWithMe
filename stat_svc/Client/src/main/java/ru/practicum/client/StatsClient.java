@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 public class StatsClient {
-    private final static DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final RestTemplate rest; //HTTP-клиент
 
