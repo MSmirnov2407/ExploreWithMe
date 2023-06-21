@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class StatsService {
-    private final static DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final StatsJpaRepository statsJpaRepository; //репозиторий для хранения обращений к эндпоинтам
 
