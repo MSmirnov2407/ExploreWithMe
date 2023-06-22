@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.EndpointHitMapper;
 import ru.practicum.dto.EndpointStats;
+import ru.practicum.dto.RequestParamDto;
 import ru.practicum.repository.StatsJpaRepository;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -49,24 +49,21 @@ public class StatsService {
     /**
      * Получение статистики о запрашиваемых эндпоинтах
      *
-     * @param startString - начало периода выборки ( в формате "yyyy-MM-dd HH:mm:ss" в кодировке URL)
-     * @param endSting    - конец периода выборки ( в формате "yyyy-MM-dd HH:mm:ss" в кодировке URL)
-     * @param uris        - список URI, по которым выгружается статистика запросов
-     * @param unique      - в расчетах участвуют только запросы с уникальными ip-адресами
+     * @param requestParamDto - DTO для передачи параметров запроса в методы сервисов
      * @return - список объектов ViewStats с информацией о статистике запросов
-     * @throws UnsupportedEncodingException - исключение в случае неправильной кодировки входных параметров
      */
-    public List<EndpointStats> getStats(String startString, String endSting, String[] uris, boolean unique) throws UnsupportedEncodingException {
+    public List<EndpointStats> getStats(RequestParamDto requestParamDto) {
         /*преобразование зашифрованных строк в стандартную кодировку*/
-        String startDecoded = URLDecoder.decode(startString, StandardCharsets.UTF_8);
-        String endDecoded = URLDecoder.decode(endSting, StandardCharsets.UTF_8);
+        String startDecoded = URLDecoder.decode(requestParamDto.getStart(), StandardCharsets.UTF_8);
+        String endDecoded = URLDecoder.decode(requestParamDto.getEnd(), StandardCharsets.UTF_8);
 
         /*преобразование полученных строк в LocalDateTime*/
         LocalDateTime start = LocalDateTime.parse(startDecoded, TIME_FORMAT);
         LocalDateTime end = LocalDateTime.parse(endDecoded, TIME_FORMAT);
 
         /*в зависимости от параметров запроса запрашиваем нужные данные*/
-        if (unique) {
+        String[] uris = requestParamDto.getUris();
+        if (requestParamDto.isUnique()) {
             if (uris == null) {
                 return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
             } else {

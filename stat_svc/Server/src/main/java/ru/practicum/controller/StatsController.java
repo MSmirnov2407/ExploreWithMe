@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.EndpointStats;
+import ru.practicum.dto.RequestParamDto;
 import ru.practicum.service.StatsService;
 
 import javax.validation.Valid;
@@ -49,11 +50,11 @@ public class StatsController {
     public List<EndpointStats> getStats(@RequestParam(name = "start") String start,
                                         @RequestParam(name = "end") String end,
                                         @RequestParam(name = "uris", required = false) String[] uris,
-                                        @RequestParam(name = "unique", defaultValue = "false") boolean unique) throws UnsupportedEncodingException {
+                                        @RequestParam(name = "unique", defaultValue = "false") boolean unique) {
         log.info("Statistic service: запрошена статистика для эндпоинтов {}", uris); //логируем
-        return statsService.getStats(start, end, uris, unique); //получаем статистику от сервиса
+        RequestParamDto requestDto = new RequestParamDto(start, end, uris, unique); //собираем все параметры запроса в отдельный DTO
+        return statsService.getStats(requestDto); //получаем статистику от сервиса по запросу
     }
-
 
     /**
      * Запрос всей имеющейся статистики (unique = false)
