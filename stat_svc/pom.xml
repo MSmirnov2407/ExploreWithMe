@@ -23,5 +23,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-
+    <!--  Общие зависимости для всех дочерних модулей этого модуля.-->
+    <dependencies>
+        <!--    Реализует получение информации о работоспособности приложения через заложенные эндпоинты-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
 </project>

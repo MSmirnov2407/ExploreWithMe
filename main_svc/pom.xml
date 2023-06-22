@@ -17,13 +17,18 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <!--        Модуль Клиента сервиса статистики-->
     <dependencies>
+        <!--        Модуль Клиента сервиса статистики-->
         <dependency>
             <groupId>ru.practicum</groupId>
             <artifactId>Client</artifactId>
             <version>${project.version}</version>
             <scope>compile</scope>
+        </dependency>
+        <!--    Реализует получение информации о приложении через заложенные эндпоинты-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
     </dependencies>
 
