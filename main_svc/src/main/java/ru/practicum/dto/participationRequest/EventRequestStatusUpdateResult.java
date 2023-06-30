@@ -1,0 +1,16 @@
+package ru.practicum.dto.participationRequest;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+/**
+ * Результат подтверждения/отклонения заявок на участие в событии
+ */
+@Getter
+@Setter
+public class EventRequestStatusUpdateResult {
+    private List<ParticipationRequestDto> confirmedRequests; //подтвержденные заявки
+    private List<ParticipationRequestDto> rejectedRequests; //отклоненные заявки
+}

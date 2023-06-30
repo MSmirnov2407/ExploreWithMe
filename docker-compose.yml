@@ -2,6 +2,7 @@ version: '3.1'
 services:
   stats-server:
     build: ./stat_svc
+    image: java-explore-with-me-stat-srv
     container_name: ewm_stat_server
     ports:
       - "9090:9090"
@@ -24,6 +25,7 @@ services:
 
   ewm-service:
     build: ./main_svc
+    image: java-explore-with-me-main-srv
     container_name: ewm_main_server
     ports:
       - "8080:8080"

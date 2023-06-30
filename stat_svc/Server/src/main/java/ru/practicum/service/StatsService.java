@@ -1,6 +1,7 @@
 package ru.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.EndpointHitMapper;
@@ -8,6 +9,7 @@ import ru.practicum.dto.EndpointStats;
 import ru.practicum.dto.RequestParamDto;
 import ru.practicum.repository.StatsJpaRepository;
 
+import javax.persistence.criteria.Expression;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -61,19 +63,44 @@ public class StatsService {
         LocalDateTime start = LocalDateTime.parse(startDecoded, TIME_FORMAT);
         LocalDateTime end = LocalDateTime.parse(endDecoded, TIME_FORMAT);
 
-        /*в зависимости от параметров запроса запрашиваем нужные данные*/
         String[] uris = requestParamDto.getUris();
+
+        /**
+         * использование specification
+         */
+//todo удалить лишнее
+        Specification<EndpointStats> specification = null;
+if (uris != null) {
+    for (String word : uris) {
+        Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
+            Expression<String> uriLowerCase = builder.lower(root.get("uri"));
+            return builder.like(uriLowerCase, word.toLowerCase() + "%");
+        };
+        if (specification == null) {
+            specification = wordSpecification;
+        } else {
+            specification = specification.or(wordSpecification);
+        }
+    }
+}
+                /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
                 return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
             } else {
-                return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
+                //todo удалить лишнее
+                //return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
+                return statsJpaRepository.getStatsUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
             }
         } else { // !unique
             if (uris == null) {
                 return statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
             } else {
-                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
+                //todo удалить лишнее
+
+                // return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
+                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+
             }
         }
     }
