@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.categoty.NewCategoryDto;
-import ru.practicum.exception.*;
+import ru.practicum.exception.AlreadyExistException;
+import ru.practicum.exception.BadParameterException;
+import ru.practicum.exception.ElementNotFoundException;
+import ru.practicum.exception.PaginationParametersException;
 import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryJpaRepository;
 
@@ -19,12 +22,14 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryJpaRepository categoryJpaRepository;
-    private final EventService eventService;
+    //todo del
+//    private final EventService eventService;
 
     @Autowired
-    public CategoryService(CategoryJpaRepository categoryJpaRepository, EventService eventService) {
+    public CategoryService(CategoryJpaRepository categoryJpaRepository) {
         this.categoryJpaRepository = categoryJpaRepository;
-        this.eventService = eventService;
+        //todo del
+//        this.eventService = eventService;
     }
 
     /**

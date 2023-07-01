@@ -6,14 +6,18 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventMapper;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.user.UserMapper;
 import ru.practicum.exception.BadParameterException;
 import ru.practicum.exception.CreateConditionException;
 import ru.practicum.exception.PaginationParametersException;
+import ru.practicum.model.Category;
 import ru.practicum.model.Event;
+import ru.practicum.model.User;
 import ru.practicum.repository.EventJpaRepository;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +37,14 @@ public class EventService {
     //todo del
 //    private final StatsClient statsClient = new StatsClient();
 
+    private final CategoryService categoryService;
+    private final UserService userService;
+
     @Autowired
-    public EventService(EventJpaRepository eventJpaRepository) {
+    public EventService(EventJpaRepository eventJpaRepository, CategoryService categoryService,UserService userService) {
         this.eventJpaRepository = eventJpaRepository;
+        this.categoryService = categoryService;
+        this.userService = userService;
     }
 
 
@@ -79,7 +88,10 @@ public class EventService {
         //todo delete
         System.out.println("EventService CreateEvent newEventDto getCategory="+newEventDto.getCategory());
 
-        Event event = EventMapper.toEvent(newEventDto, userId); //преобразуем в event
+        Category category = CategoryMapper.toCategory(categoryService.getCategoryById(newEventDto.getCategory()));
+        User user = UserMapper.toUser(userService.getUserById(userId));
+
+        Event event = EventMapper.toEvent(newEventDto,category, user); //преобразуем в event
 //        String[] uris = {"/events/" + event.getId()}; //оформляем uri события в виде списка для дальнейшей передачи в метод statsClient
 //        List<EndpointStats> stats = StatsClient.getStats(LocalDateTime.of(1970,01,01,01,01), LocalDateTime.now(), uris, false); //статистика запросов
 //        long views = 0;

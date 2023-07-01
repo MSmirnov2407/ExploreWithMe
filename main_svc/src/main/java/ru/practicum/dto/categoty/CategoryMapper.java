@@ -63,6 +63,7 @@ public class CategoryMapper {
         Category category = new Category();
 
         /*заполняем поля Объекта значениями из DTO*/
+        category.setId(categoryDto.getId());
         category.setName(categoryDto.getName());
 
         return category;

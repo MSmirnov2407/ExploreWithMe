@@ -1,17 +1,12 @@
 package ru.practicum.dto.event;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.location.LocationMapper;
-import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.model.Category;
 import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
-import ru.practicum.service.CategoryService;
-import ru.practicum.service.UserService;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,10 +18,11 @@ import java.util.HashSet;
 public class EventMapper {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    @Autowired
-    private static CategoryService categoryService;
-    @Autowired
-    private static UserService userService;
+    //todo del
+//    @Autowired
+//    private static CategoryService categoryService;
+//    @Autowired
+//    private static UserService userService;
 
     //todo удалить или поправить
 //
@@ -40,32 +36,35 @@ public class EventMapper {
 //        return event;
 //    }
 
-    public static Event toEvent(NewEventDto newEventDto, int userId) {
+    public static Event toEvent(NewEventDto newEventDto,Category category, User user) {
         Event event = new Event();
 
         /*заполняем поля объекта значениями из DTO*/
         event.setAnnotation(newEventDto.getAnnotation());
-        event.setEventDate(LocalDateTime.now());
+        event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(),TIME_FORMAT));
+        event.setDescription(newEventDto.getDescription());
+
         event.setLocation(LocationMapper.toLocation(newEventDto.getLocation()));
         event.setPaid(newEventDto.isPaid());
         event.setParticipantLimit(newEventDto.getParticipantLimit());
         event.setRequestModeration(newEventDto.isRequestModeration());
         event.setTitle(newEventDto.getTitle());
         event.setCompilations(new HashSet<Compilation>());
+        event.setCreatedOn(LocalDateTime.now());
 
         //todo del
         System.out.println("EventMapper перед категориям");
 
-        CategoryDto categoryDto = categoryService.getCategoryById(newEventDto.getCategory());
+        //CategoryDto categoryDto = categoryService.getCategoryById(newEventDto.getCategory());
         //todo del
-        System.out.println("EventMapper после categoryService, перед CategoryMapper");
-        Category category = CategoryMapper.toCategory(categoryDto);
+       System.out.println("EventMapper после categoryService, перед CategoryMapper");
+      //  Category category = CategoryMapper.toCategory(categoryDto);
 
         //todo del
         System.out.println("EventMapper после категорий, перед юзерами");
 
-        UserDto userDto = userService.getUserById(userId);
-        User user = UserMapper.toUser(userDto);
+        //UserDto userDto = userService.getUserById(userId);
+       // User user = UserMapper.toUser(userDto);
 
         //todo del
         System.out.println("EventMapper после юзеров");
