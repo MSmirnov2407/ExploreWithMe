@@ -46,7 +46,7 @@ public class UserControllerAdmin {
      * @return - список DTO пользователей
      */
     @GetMapping
-    public List<UserDto> getAllUsers(@RequestParam(name = "ids", required = false) int[] ids,
+    public List<UserDto> getAllUsers(@RequestParam(name = "ids", required = false) List<Integer> ids,
                                      @RequestParam(name = "from", required = false, defaultValue = "0") Integer from,
                                      @RequestParam(name = "size", required = false, defaultValue = "10") Integer size) {
         log.info("Запрошен список пользователей. ids={}, from={}, size={}", ids, from, size);

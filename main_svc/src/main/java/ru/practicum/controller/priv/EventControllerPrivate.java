@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.participationRequest.EventRequestStatusUpdateRequest;
+import ru.practicum.dto.participationRequest.EventRequestStatusUpdateResult;
+import ru.practicum.dto.participationRequest.ParticipationRequestDto;
 import ru.practicum.service.EventService;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
@@ -36,11 +39,8 @@ public class EventControllerPrivate {
     @ResponseStatus(HttpStatus.CREATED) //201
     public EventFullDto postEvent(@PathVariable(name = "userId") int userId,
                                   @Valid @RequestBody NewEventDto newEventDto) {
-        log.info("Создано новое событие title={}, date={}", newEventDto.getTitle(), newEventDto.getEventDate());
-
         EventFullDto eventDto = eventService.createEvent(newEventDto, userId);
         log.info("Создано новое событие title={}, date={}", eventDto.getTitle(), eventDto.getEventDate());
-
         return eventDto;
     }
 
@@ -56,10 +56,65 @@ public class EventControllerPrivate {
     @ResponseStatus(HttpStatus.OK) //200
     public List<EventShortDto> getEventsByUser(@PathVariable(name = "userId") int userId,
                                                @RequestParam(name = "from", defaultValue = "0") int from,
-                                               @RequestParam(name = "size", defaultValue = "10") int size,
-                                               HttpServletRequest request) {
-        List<EventShortDto> eventShortDtos = eventService.getAllByUser(userId, from, size, request);
+                                               @RequestParam(name = "size", defaultValue = "10") int size) {
+        List<EventShortDto> eventShortDtos = eventService.getAllByUser(userId, from, size);
         log.info("Получен список событий, добавленных пользователем с id={}", userId);
         return eventShortDtos;
     }
+
+    /**
+     * Получение события, добавленного текущим пользователем, по указанному Id
+     *
+     * @param userId  - id пользователя
+     * @param eventId - id события
+     * @return - DTO События
+     */
+    @GetMapping("/{eventId}")
+    @ResponseStatus(HttpStatus.OK) //200
+    public EventFullDto getEventByUserAndId(@PathVariable(name = "userId") int userId,
+                                            @PathVariable(name = "eventId") int eventId) {
+        EventFullDto eventFullDto = eventService.getByUserAndId(userId, eventId);
+        log.info("Получено событие с Id={} , добавленное пользователем с id={}", eventId, userId);
+        return eventFullDto;
+    }
+
+    @PatchMapping()
+    @ResponseStatus(HttpStatus.OK) //200
+    public EventFullDto patcnEvent(@PathVariable(name = "userId") int userId,
+                                   @RequestParam(name = "eventId") int eventId,
+                                   @Valid @RequestBody UpdateEventUserRequest updateRequest) {
+        EventFullDto eventFullDto = eventService.patchEvent(userId, eventId, updateRequest);
+        log.info("Обновлено событие с Id={} , добавленное пользователем с id={}", eventId, userId);
+        return eventFullDto;
+    }
+
+    /**
+     * Получение инфомрации о запросах на участие в событии текущего пользователя
+     *
+     * @param userId  - id пользователя
+     * @param eventId - id события
+     * @return - DTO participationRequestDto
+     */
+    @GetMapping("/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK) //200
+    public List<ParticipationRequestDto> getParticipationInfo(@PathVariable(name = "userId") int userId,
+                                                              @PathVariable(name = "eventId") int eventId) {
+        List<ParticipationRequestDto> partRequestDtoList = eventService.getParticipationInfo(userId, eventId);
+        log.info("Получена информация о запросах на учатсие в событии с Id={} , добавленное пользователем с id={}", eventId, userId);
+        return partRequestDtoList;
+    }
+
+    /**
+     * Изменение статуса (подтверждена, отменена) заявок на участие в событии текущего пользователя
+     */
+    @PatchMapping("/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK) //200
+    public EventRequestStatusUpdateResult patchEventStatus(@PathVariable(name = "userId") int userId,
+                                                           @PathVariable(name = "eventId") int eventId,
+                                                           @RequestBody EventRequestStatusUpdateRequest statusUpdateRequest) {
+        EventRequestStatusUpdateResult updateStatusResult = eventService.updateStatus(userId, eventId, statusUpdateRequest);
+        log.info("Обновлен статус события с Id={} , добавленное пользователем с id={}. Статус = {}", eventId, userId,statusUpdateRequest.getStatus().toString());
+        return updateStatusResult;
+    }
+
 }

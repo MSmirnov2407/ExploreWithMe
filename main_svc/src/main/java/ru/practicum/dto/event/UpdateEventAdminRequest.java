@@ -2,7 +2,7 @@ package ru.practicum.dto.event;
 
 import lombok.Getter;
 import lombok.Setter;
-import ru.practicum.dto.location.LocationDto;
+import ru.practicum.model.Location;
 
 import javax.validation.constraints.Size;
 
@@ -18,10 +18,10 @@ public class UpdateEventAdminRequest {
     @Size(min = 20, max = 7000)
     private String description;   //новое описание
     private String eventDate;//Новые Дата и время на которые намечено событие yyyy-MM-dd HH:mm:ss
-    private LocationDto location; //Новое место проведения события
-    private boolean paid; //Новое значение флага о платности мероприятия
-    private int participantLimit; //новый лимит пользователей
-    private boolean requestModeration; //нужна ли пре-модерация заявок на участие
+    private Location location; //Новое место проведения события
+    private Boolean paid; //Новое значение флага о платности мероприятия
+    private Integer participantLimit; //новый лимит пользователей
+    private Boolean requestModeration; //нужна ли пре-модерация заявок на участие
     private String stateAction; //Новое состояние события
     @Size(min = 3, max = 120)
     private String title; //Новый Заголовок

@@ -3,12 +3,13 @@ package ru.practicum.dto.event;
 import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.dto.categoty.CategoryDto;
-import ru.practicum.dto.location.LocationDto;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.model.EventState;
+import ru.practicum.model.Location;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * DTO события с полной информацией о нём
@@ -31,7 +32,7 @@ public class EventFullDto {
     @NotNull
     private UserShortDto initiator; //пользователь, создавший событие
     @NotNull
-    private LocationDto location; //место проведения события
+    private Location location; //место проведения события
     @NotNull
     private boolean paid; //Нужно ли оплачивать участие
     private int participantLimit = 0; //Ограничение на количество участников. Значение 0 - означает отсутствие ограничения

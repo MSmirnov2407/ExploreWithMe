@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -49,8 +50,8 @@ public class ErrorHandler {
 //        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST); //400
 //    }
 
-    @ExceptionHandler(ElementNotFoundException.class)
-    public ResponseEntity<ApiError> handleElementNotFoundException(ElementNotFoundException ex) {
+    @ExceptionHandler({ElementNotFoundException.class, NoSuchElementException.class})
+    public ResponseEntity<ApiError> handleElementNotFoundException(RuntimeException ex) {
         ApiError apiError = new ApiError();
         /*получаем стектрейсы*/
         List<String> stackTraceList = Arrays.stream(ex.getStackTrace())

@@ -3,21 +3,16 @@ package ru.practicum.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Embeddable;
 
 /**
- * Локация - широта и долгота места проведения события (сущность)
+ * Локация - широта и долгота места проведения события (embedded-класс)
  */
-@Entity
-@Table(name = "location", schema = "public")
+@Embeddable
 @Getter
 @Setter
 public class Location {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id; //id места проведения
-    @Column(name = "lat")
+
     private float lat; //lattitude - Широта
-    @Column(name = "lon")
     private float lon; //longitude - Долгота
 }

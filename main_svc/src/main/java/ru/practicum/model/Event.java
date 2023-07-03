@@ -5,6 +5,7 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -41,8 +42,10 @@ public class Event {
     @JoinColumn(name = "initiator")
     private User initiator; //пользователь, создавший событие
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "lat", column = @Column(name = "location_lat")),
+            @AttributeOverride(name = "lon", column = @Column(name = "location_lon"))})
     private Location location; //место проведения события
 
     @Column(name = "paid")
@@ -65,4 +68,17 @@ public class Event {
     @ManyToMany(mappedBy = "events")
     //связанное поле в сущности Compilations. Там же описана и связка через пром.таблицу
     private Set<Compilation> compilations;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Event)) return false;
+        Event event = (Event) o;
+        return id == event.id && initiator.equals(event.initiator);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, initiator);
+    }
 }

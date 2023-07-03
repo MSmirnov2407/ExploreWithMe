@@ -1,7 +1,6 @@
 package ru.practicum.dto.event;
 
 import ru.practicum.dto.categoty.CategoryMapper;
-import ru.practicum.dto.location.LocationMapper;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.model.Category;
 import ru.practicum.model.Compilation;
@@ -36,41 +35,50 @@ public class EventMapper {
 //        return event;
 //    }
 
-    public static Event toEvent(NewEventDto newEventDto,Category category, User user) {
+    public static Event toEvent(NewEventDto newEventDto, Category category, User user) {
         Event event = new Event();
 
         /*заполняем поля объекта значениями из DTO*/
         event.setAnnotation(newEventDto.getAnnotation());
-        event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(),TIME_FORMAT));
+        event.setCategory(category);
+        event.setCreatedOn(LocalDateTime.now());
         event.setDescription(newEventDto.getDescription());
+        event.setEventDate(LocalDateTime.parse(newEventDto.getEventDate(), TIME_FORMAT));
+        event.setInitiator(user);
+        event.setLocation(newEventDto.getLocation());
 
-        event.setLocation(LocationMapper.toLocation(newEventDto.getLocation()));
+
         event.setPaid(newEventDto.isPaid());
         event.setParticipantLimit(newEventDto.getParticipantLimit());
+        event.setPublishedOn(LocalDateTime.now());
         event.setRequestModeration(newEventDto.isRequestModeration());
         event.setTitle(newEventDto.getTitle());
         event.setCompilations(new HashSet<Compilation>());
+
+        return event;
+    }
+
+    public static Event toEvent(EventFullDto eventFullDto,User user) {
+        Event event = new Event();
+
+        /*заполняем поля объекта значениями из DTO*/
+        event.setId(eventFullDto.getId());
+        event.setAnnotation(eventFullDto.getAnnotation());
+        event.setCategory(CategoryMapper.toCategory(eventFullDto.getCategory()));
+        event.setConfirmedRequests(eventFullDto.getConfirmedRequests());
         event.setCreatedOn(LocalDateTime.now());
-
-        //todo del
-        System.out.println("EventMapper перед категориям");
-
-        //CategoryDto categoryDto = categoryService.getCategoryById(newEventDto.getCategory());
-        //todo del
-       System.out.println("EventMapper после categoryService, перед CategoryMapper");
-      //  Category category = CategoryMapper.toCategory(categoryDto);
-
-        //todo del
-        System.out.println("EventMapper после категорий, перед юзерами");
-
-        //UserDto userDto = userService.getUserById(userId);
-       // User user = UserMapper.toUser(userDto);
-
-        //todo del
-        System.out.println("EventMapper после юзеров");
-
-        event.setCategory(category);
+        event.setDescription(eventFullDto.getDescription());
+        event.setEventDate(LocalDateTime.parse(eventFullDto.getEventDate(), TIME_FORMAT));
         event.setInitiator(user);
+        event.setLocation(eventFullDto.getLocation());
+
+        event.setPaid(eventFullDto.isPaid());
+        event.setParticipantLimit(eventFullDto.getParticipantLimit());
+        event.setPublishedOn(LocalDateTime.now());
+        event.setRequestModeration(eventFullDto.isRequestModeration());
+        event.setState(eventFullDto.getState());
+        event.setTitle(eventFullDto.getTitle());
+        event.setCompilations(new HashSet<Compilation>());
 
         return event;
     }
@@ -113,8 +121,10 @@ public class EventMapper {
         eventFullDto.setCategory(CategoryMapper.toDto(event.getCategory()));
         eventFullDto.setConfirmedRequests(event.getConfirmedRequests());
         eventFullDto.setCreatedOn(event.getCreatedOn().format(TIME_FORMAT));
+        eventFullDto.setDescription(event.getDescription());
+        eventFullDto.setEventDate(event.getEventDate().format(TIME_FORMAT));
         eventFullDto.setInitiator(UserMapper.toShortDto(event.getInitiator()));
-        eventFullDto.setLocation(LocationMapper.toDto(event.getLocation()));
+        eventFullDto.setLocation(event.getLocation());
         eventFullDto.setPaid((event.isPaid()));
         eventFullDto.setParticipantLimit(event.getParticipantLimit());
         eventFullDto.setPublishedOn(event.getPublishedOn().format(TIME_FORMAT));

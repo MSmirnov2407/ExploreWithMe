@@ -19,4 +19,10 @@ public interface EventJpaRepository extends JpaRepository<Event, Integer> {
             "FROM Event as e " +
             "WHERE initiator.id = ?1")
     List<Event> getAllByUser(int userId, PageRequest page);
+
+    @Query("SELECT e " +
+            "FROM Event as e " +
+            "WHERE id = ?1 " +
+            "AND initiator.id = ?2")
+    Event getByIdAndUserId(int eventId, int userId);
 }

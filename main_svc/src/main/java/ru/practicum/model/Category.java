@@ -19,4 +19,6 @@ public class Category {
 
     @Column(name = "name", unique = true)
     private String name; //название категории
+
+
 }

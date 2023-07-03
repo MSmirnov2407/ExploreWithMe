@@ -126,7 +126,7 @@ public class CategoryService {
      */
     public CategoryDto getCategoryById(int categoryId) {
 //todo del
-        System.out.println("CategoryService getCatById= "+ categoryId);
+        System.out.println("CategoryService getCatById= " + categoryId);
 
         /*проверка параметров запроса*/
         if (categoryId <= 0) {

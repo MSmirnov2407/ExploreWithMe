@@ -25,12 +25,16 @@ public class StatsClient {
 
     private static final RestTemplate rest; //HTTP-клиент
 
-    static {RestTemplateBuilder builder = new RestTemplateBuilder();
-        String serverUrl = "http://localhost:9090";
+    static {
+        RestTemplateBuilder builder = new RestTemplateBuilder();
+        //todo del
+//        String serverUrl = "http://localhost:9090";
+        String serverUrl = "http://ewm-stat-server:9090";
 
         rest = builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
-                .build();}
+                .build();
+    }
 
 
     public static List<EndpointStats> getStats(LocalDateTime startTime, LocalDateTime endTime, @Nullable String[] uris, @Nullable Boolean unique) {
@@ -52,17 +56,21 @@ public class StatsClient {
             parameters.put("unique", unique);
             sb.append("&unique={unique}");
         }
+        //todo del prnt
+
         System.out.println("getStats path " + sb.toString());
         System.out.println("getStats params " + parameters.toString());
+
+
         return makeAndSendGetStatsRequest(HttpMethod.GET, sb.toString(), parameters, null);
     }
 
     public static ResponseEntity<String> postHit(EndpointHitDto hit) {
         //todo вывод
-        System.out.println("StatsClient postHit app ="+hit.getApp());
-        System.out.println("StatsClient postHit ip ="+hit.getIp());
-        System.out.println("StatsClient postHit uri ="+hit.getUri());
-        System.out.println("StatsClient postHit time ="+hit.getTimestamp());
+        System.out.println("StatsClient postHit app =" + hit.getApp());
+        System.out.println("StatsClient postHit ip =" + hit.getIp());
+        System.out.println("StatsClient postHit uri =" + hit.getUri());
+        System.out.println("StatsClient postHit time =" + hit.getTimestamp());
 
 
         ResponseEntity<String> responseEntity = makeAndSendPostHitRequest(HttpMethod.POST, "/hit", null, hit);
@@ -78,19 +86,48 @@ public class StatsClient {
      */
     public static Map<Integer, Long> getMapIdViews(Collection<Integer> eventsId) {
 
+        //todo удалить вывод
+        for (var e : eventsId) {
+            System.out.println("StatsClient : getMapsView eventsId =" + e);
+        }
+
+
         /*составляем список URI событий из подборки*/
         List<String> eventUris = eventsId.stream()
                 .map(i -> "/events/" + i)
                 .collect(Collectors.toList()); //преобразовали список событий в список URI
+
+        //todo удалить вывод
+        for (var e : eventUris) {
+            System.out.println("StatsClient : getMapsView eventUris =" + e);
+        }
+
         String[] uriArray = new String[eventUris.size()]; //создали массив строк
         eventUris.toArray(uriArray); //заполнили массив строками из списка URI
 
+//todo удалить вывод
+        for (var e : uriArray) {
+            System.out.println("StatsClient : getMapsView uriArray =" + e);
+        }
+
         /*запрашиваем у клиента статистики данные по нужным URI*/
-        List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970,01,01,01,01), LocalDateTime.now(), uriArray, false);
+        List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970, 01, 01, 01, 01), LocalDateTime.now(), uriArray, false);
+
+        //todo удалить вывод
+        for (var e : endpointStatsList) {
+            System.out.println("StatsClient : getMapsView endpointStatsList uri =" + e.getUri());
+        }
+
+        if (endpointStatsList == null || endpointStatsList.isEmpty()) { //если нет статистики по эндпоинтам, возвращаем мапу с нулевыми просмотрами
+            return eventsId.stream()
+                    .collect(Collectors.toMap(e -> e, e->0L));
+        }
         /*превращаем список EndpointStats в мапу <id события, кол-во просмотров>*/
         Map<Integer, Long> idViewsMap = endpointStatsList.stream()
                 .collect(Collectors.toMap(e -> {
                             String[] splitUri = e.getUri().split("/"); //делим URI /events/1
+                            System.out.println("idViewsMap +// 0/+ " + splitUri[0]);
+                            System.out.println("idViewsMap +// 1/+ " + splitUri[1]);
                             return Integer.valueOf(splitUri[splitUri.length - 1]); //берем последний элемент разбитой строки - это id
                         },
                         EndpointStats::getHits));

@@ -23,6 +23,7 @@ public class StatsService {
 
     private final StatsJpaRepository statsJpaRepository; //репозиторий для хранения обращений к эндпоинтам
 
+
     @Autowired
     public StatsService(StatsJpaRepository statsJpaRepository) {
         this.statsJpaRepository = statsJpaRepository;
@@ -69,21 +70,29 @@ public class StatsService {
          * использование specification
          */
 //todo удалить лишнее
-        Specification<EndpointStats> specification = null;
-if (uris != null) {
-    for (String word : uris) {
-        Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
-            Expression<String> uriLowerCase = builder.lower(root.get("uri"));
-            return builder.like(uriLowerCase, word.toLowerCase() + "%");
-        };
-        if (specification == null) {
-            specification = wordSpecification;
-        } else {
-            specification = specification.or(wordSpecification);
+        for (var e : uris) {
+            System.out.println("StatsSERVER - getStats- uri: "+e);
         }
-    }
-}
-                /*в зависимости от параметров запроса запрашиваем нужные данные*/
+
+        Specification<EndpointStats> specification = null;
+        if (uris != null) {
+            for (String word : uris) {
+                Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
+                    Expression<String> uriLowerCase = builder.lower(root.get("uri"));
+                    return builder.like(uriLowerCase, word.toLowerCase() + "%");
+                };
+                if (specification == null) {
+                    specification = wordSpecification;
+                } else {
+                    specification = specification.or(wordSpecification);
+                }
+            }
+            //todo удалить
+
+
+            //todo удалить печать
+        }
+        /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
                 return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
@@ -104,4 +113,18 @@ if (uris != null) {
             }
         }
     }
+
+    //todo del
+    /**
+     * Внутренний класс для описания спицификации условия для EndPointStats
+     */
+//    class EndPointStatsSpecification {
+//        public Specification<EndpointHit> uriStartsWith(String startWord) {
+//            return (root, query, builder) -> {
+//                Expression<String> uriLowerCase = builder.lower(root.get("uri"));
+//                return builder.like(uriLowerCase, startWord.toLowerCase() + "%");
+//            };
+//        }
+//    }
+
 }

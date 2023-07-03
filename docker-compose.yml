@@ -3,7 +3,7 @@ services:
   stats-server:
     build: ./stat_svc
     image: java-explore-with-me-stat-srv
-    container_name: ewm_stat_server
+    container_name: ewm-stat-server
     ports:
       - "9090:9090"
     depends_on:
@@ -26,11 +26,12 @@ services:
   ewm-service:
     build: ./main_svc
     image: java-explore-with-me-main-srv
-    container_name: ewm_main_server
+    container_name: ewm-main-server
     ports:
       - "8080:8080"
     depends_on:
       - ewm-db
+      - stats-server
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-main-db:5432/ewmMainDB
       - POSTGRES_USER=root

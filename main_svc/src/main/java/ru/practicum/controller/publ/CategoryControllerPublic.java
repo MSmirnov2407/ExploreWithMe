@@ -42,6 +42,7 @@ public class CategoryControllerPublic {
      * получение категории событий по ее id
      */
     @GetMapping("/{categoryId}")
+    @ResponseStatus(HttpStatus.OK) //200
     public CategoryDto getCategory(@PathVariable int categoryId) {
         CategoryDto categoryDto = categoryService.getCategoryById(categoryId);
         log.info("Получена категория с id={} через Публичный контроллер", categoryId);

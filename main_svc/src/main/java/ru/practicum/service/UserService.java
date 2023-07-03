@@ -14,6 +14,8 @@ import ru.practicum.exception.PaginationParametersException;
 import ru.practicum.model.User;
 import ru.practicum.repository.UserJpaRepository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,9 +64,9 @@ public class UserService {
      * @param size - параметр пагинации - сколько эл-ов выводить
      * @return - список DTO
      */
-    public List<UserDto> getUsers(int[] ids, Integer from, Integer size) {
+    public List<UserDto> getUsers(List<Integer> ids, Integer from, Integer size) {
         List<User> users; //список пользователей
-        if (ids == null || ids.length == 0) { //если список id пустой, то запрашиваем согласно пагиинации
+        if (ids == null || ids.isEmpty()) { //если список id пустой, то запрашиваем согласно пагиинации
             if (from == null || size == null || from < 0 || size < 1) { //проверка параметров запроса
                 throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
             }
@@ -74,6 +76,24 @@ public class UserService {
             users = userJpaRepository.findAllByIdIn(ids);
         }
 
+        return users.stream()
+                .map(UserMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получение списка всех пользователей по списку id
+     *
+     * @param ids - список id пользователей.
+     * @return - список DTO
+     */
+    public List<UserDto> getAllUsers(List<Integer> ids) {
+        List<User> users; //список пользователей
+        if (ids == null || ids.isEmpty()) { //если список id пустой, то Возвращаем пустой списко
+            return new ArrayList<>();
+        } else {
+            users = userJpaRepository.findAllByIdIn(ids);
+        }
         return users.stream()
                 .map(UserMapper::toDto)
                 .collect(Collectors.toList());

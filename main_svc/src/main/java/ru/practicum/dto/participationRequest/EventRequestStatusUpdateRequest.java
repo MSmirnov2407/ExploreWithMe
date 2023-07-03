@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import ru.practicum.model.RequestStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,6 @@ import java.util.List;
 @Getter
 @Setter
 public class EventRequestStatusUpdateRequest {
-    private List<Integer> requestIds; //Идентификаторы запросов на участие в событии текущего пользователя
-    private RequestStatus status; //Новый статус запроса на участие в событии текущего пользователя
+    private List<Integer> requestIds ; //Идентификаторы запросов на участие в событии текущего пользователя
+    private UpdateRequestState status; //Новый статус запроса на участие в событии текущего пользователя
 }
