@@ -19,6 +19,7 @@ import ru.practicum.model.*;
 import ru.practicum.repository.EventJpaRepository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -562,7 +563,8 @@ public class EventService {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
         CriteriaQuery<Event> criteriaQuery = criteriaBuilder.createQuery(Event.class); //создаем объект CriteriaQuery с помощью CriteriaBuilder
         Root<Event> eventRoot = criteriaQuery.from(Event.class);
-        criteriaQuery.select(eventRoot);
+        criteriaQuery = criteriaQuery.select(eventRoot);
+
 
         //todo del
         System.out.println("EventService перед предикатами!!!!!!!!!!!!!!");
@@ -601,8 +603,12 @@ public class EventService {
         }
         if (complexPredicate != null) {
             criteriaQuery.where(complexPredicate); //если были добавлены предикаты, то применяем их к запросу
-            resultEvents = entityManager.createQuery(criteriaQuery).getResultList();
+            //resultEvents = entityManager.createQuery(criteriaQuery).getResultList();
         }
+        TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery);
+        typedQuery.setFirstResult(from);
+        typedQuery.setMaxResults(size);
+        resultEvents = typedQuery.getResultList();
 
         //todo del
         System.out.println("EventService после всех предикатов!!!!!!!!!!!!!!");
