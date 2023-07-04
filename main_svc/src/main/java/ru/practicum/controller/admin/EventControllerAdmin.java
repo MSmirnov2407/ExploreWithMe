@@ -44,7 +44,7 @@ public class EventControllerAdmin {
                                             @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                             @RequestParam(name = "size", required = false,defaultValue = "10") int size){
         List<EventFullDto> events = eventService.searchEvents(users,states,categories,rangeStart,rangeEnd,from,size);
-        log.info("Выполнен поиск событий");
+        log.info("Выполнен поиск событий через API администратора");
         return events;
     }
 

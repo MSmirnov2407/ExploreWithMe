@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import ru.practicum.model.Event;
 
 import java.util.List;
+import java.util.Set;
 
 public interface EventJpaRepository extends JpaRepository<Event, Integer> {
 
@@ -25,4 +26,12 @@ public interface EventJpaRepository extends JpaRepository<Event, Integer> {
             "WHERE id = ?1 " +
             "AND initiator.id = ?2")
     Event getByIdAndUserId(int eventId, int userId);
+
+    List<Event> findByIdIn(Set<Integer> eventIds);
+
+    @Query("SELECT e " +
+            "FROM Event as e " +
+            "JOIN FETCH e.initiator "+
+            "WHERE e.id in ?1 ")
+    List<Event> findEventsWIthUsersByIdSet(Set<Integer> eventIds);
 }

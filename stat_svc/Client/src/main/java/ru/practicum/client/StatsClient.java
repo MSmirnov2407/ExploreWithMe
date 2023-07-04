@@ -14,10 +14,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StatsClient {
@@ -49,7 +46,10 @@ public class StatsClient {
         StringBuilder sb = new StringBuilder();
         sb.append("/stats?start={start}&end={end}");
         if (uris != null) {
-            parameters.put("uris", uris);
+            StringBuilder urisSb = new StringBuilder();
+            Arrays.asList(uris)
+                            .forEach(urisSb::append);
+            parameters.put("uris", urisSb.toString());
             sb.append("&uris={uris}");
         }
         if (unique != null) {
@@ -128,6 +128,7 @@ public class StatsClient {
                             String[] splitUri = e.getUri().split("/"); //делим URI /events/1
                             System.out.println("idViewsMap +// 0/+ " + splitUri[0]);
                             System.out.println("idViewsMap +// 1/+ " + splitUri[1]);
+                            Arrays.asList(splitUri).forEach(s->System.out.println("idViewsMap + elements+ "+e));
                             return Integer.valueOf(splitUri[splitUri.length - 1]); //берем последний элемент разбитой строки - это id
                         },
                         EndpointStats::getHits));

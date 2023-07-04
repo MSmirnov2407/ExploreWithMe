@@ -60,18 +60,23 @@ public class CompilationMapper {
         return compilation;
     }
 
-//
-//    /**
-//     * Преобразование NewCompilationDto в Compilation
-//     *
-//     * @param newCompilationDto - DTO
-//     * @return - Compilation
-//     */
-//    public static Compilation toComp(NewCompilationDto newCompilationDto) {
-//        Compilation compilation = new Compilation();
-//
-//        return compilation;
-//    }
+
+    /**
+     * Преобразование NewCompilationDto в Compilation
+     *
+     * @param newCompilationDto - DTO
+     * @return - Compilation
+     */
+    public static Compilation toComp(NewCompilationDto newCompilationDto, Set<Event> events) {
+        Compilation compilation = new Compilation();
+
+        /*заполнение полей Объекта*/
+        compilation.setTitle(newCompilationDto.getTitle());
+        compilation.setEvents(events);
+        compilation.setPinned(newCompilationDto.isPinned());
+
+        return compilation;
+    }
 }
 
 

@@ -6,15 +6,18 @@ import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventMapper;
 import ru.practicum.dto.participationRequest.ParticipationMapper;
 import ru.practicum.dto.participationRequest.ParticipationRequestDto;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.exception.BadParameterException;
 import ru.practicum.exception.CreateConditionException;
+import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.model.*;
 import ru.practicum.repository.ParticipationJpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,11 +107,67 @@ public class ParticipationService {
 
     /**
      * Обновление информации о запросе в репозитории
+     *
      * @param prDto - DTO запроса
      * @param event - событие
      */
     public void update(ParticipationRequestDto prDto, Event event) {
         User user = UserMapper.toUser(userService.getUserById(prDto.getRequester())); //пользователь запрашивающий участие
-        participationJpaRepository.save(ParticipationMapper.toPr(prDto, event, user )); //сохраняем обновленную информацию в БД
+        participationJpaRepository.save(ParticipationMapper.toPr(prDto, event, user)); //сохраняем обновленную информацию в БД
+    }
+
+    /**
+     * Получение информации о заявках на уастие текущего пользователя в событиях других пользователей
+     *
+     * @param userId - id пользователя
+     * @return - список заявкок
+     */
+    public List<ParticipationRequestDto> getRequestsByUser(int userId) {
+        /*проверка входных данных*/
+        if (userId < 0) {
+            throw new BadParameterException("Id пользователя должен быть больше 0");
+        }
+        UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id
+        if (userDto == null) {
+            throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
+        }
+
+        List<ParticipationRequest> requestList = participationJpaRepository.findAllByUserId(userId);
+
+        if (requestList == null){ //если заявок нет - возвращаем пустой лист
+            return new ArrayList<>();
+        }
+        return requestList.stream()
+                .map(ParticipationMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Отмена своего запроса на участие в событии
+     * @param userId - Id пользвателя
+     * @param requestId - id заявки на учстие
+     */
+    public ParticipationRequestDto patchRequestCancel(int userId, int requestId){
+        /*проверка входных данных*/
+        if (userId < 0) {
+            throw new BadParameterException("Id пользователя должен быть больше 0");
+        }
+        if (requestId < 0) {
+            throw new BadParameterException("Id заявки должен быть больше 0");
+        }
+        UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id
+        if (userDto == null) {
+            throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
+        }
+       Optional<ParticipationRequest> partRequestOptional = participationJpaRepository.findById(requestId); //взяли  запрос на участие из репозитория по id
+        if (partRequestOptional.isEmpty()) {
+            throw new ElementNotFoundException("Заявка на участие с id= " + requestId + " не найден");
+        }
+
+        ParticipationRequest partRequest = partRequestOptional.get(); //взяли объект из optionala
+        partRequest.setStatus(RequestStatus.CANCELED); //поставили статус Отменена
+        ParticipationRequest partRequestUpdated = participationJpaRepository.save(partRequest); //сохранили в репозитории
+        return ParticipationMapper.toDto(partRequestUpdated);
     }
 }

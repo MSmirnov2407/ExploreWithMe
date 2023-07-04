@@ -9,6 +9,8 @@ import ru.practicum.dto.participationRequest.ParticipationRequestDto;
 import ru.practicum.service.EventService;
 import ru.practicum.service.ParticipationService;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users/{userId}/requests")
 @Slf4j
@@ -40,4 +42,34 @@ public class ParticipationRequestControllerPrivate {
         log.info("Создан новый запрос userid={}, eventId={},requestId={}", userId, eventId, requestDto.getId());
         return requestDto;
     }
+
+    /**
+     * Получение информации о заявках на уастие текущего пользователя в событиях других пользователей
+     *
+     * @param userId - id пользователя
+     * @return - список заявкок
+     */
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<ParticipationRequestDto> getParticipationRequestsByUser(@PathVariable(name = "userId") int userId) {
+
+        List<ParticipationRequestDto> requestDtos = participationService.getRequestsByUser(userId);
+        log.info("Получен список заявок пользователя с userid={} в событиях других пользователей", userId);
+        return requestDtos;
+    }
+
+    /**
+     * Отмена своего запроса на участие в событии
+     * @param userId - id пользователя
+     * @param requestId - id запроса
+     */
+    @PatchMapping("/{requestId}/cancel")
+    @ResponseStatus(HttpStatus.OK)
+    public ParticipationRequestDto patchRequestCancel(@PathVariable(name = "userId") int userId,
+                                   @PathVariable(name = "requestId") int requestId) {
+        ParticipationRequestDto participationRequestDto = participationService.patchRequestCancel(userId,requestId);
+        log.info("Отмена заявки Id={} от пользователя с userid={}", requestId, userId);
+        return participationRequestDto;
+    }
+
 }

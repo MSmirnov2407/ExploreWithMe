@@ -77,6 +77,8 @@ public class StatsService {
         Specification<EndpointStats> specification = null;
         if (uris != null) {
             for (String word : uris) {
+                //todo
+                System.out.println("StatsSERVER - getStats- specification: "+word.toLowerCase() + "%");
                 Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
                     Expression<String> uriLowerCase = builder.lower(root.get("uri"));
                     return builder.like(uriLowerCase, word.toLowerCase() + "%");
