@@ -34,9 +34,9 @@ public class ParticipationMapper {
     /**
      * Преобразование DTO ParticipationRequestDto в ParticipationRequest
      *
-     * @param dto - DTO Запроса на участие
+     * @param dto   - DTO Запроса на участие
      * @param event - событие
-     * @param user - пользователь на участие
+     * @param user  - пользователь на участие
      * @return - запрос на участие
      */
     public static ParticipationRequest toPr(ParticipationRequestDto dto, Event event, User user) {
@@ -44,7 +44,7 @@ public class ParticipationMapper {
 
         /*заполнение полей DTO Значениями из объекта*/
         pr.setId(dto.getId());
-        pr.setCreated(LocalDateTime.parse(dto.getCreated(),TIME_FORMAT));
+        pr.setCreated(LocalDateTime.parse(dto.getCreated(), TIME_FORMAT));
         pr.setEvent(event);
         pr.setRequester(user);
         pr.setStatus(RequestStatus.valueOf(dto.getStatus()));

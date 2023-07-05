@@ -36,14 +36,14 @@ public class EventControllerAdmin {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<EventFullDto> searchEvents (@RequestParam(name = "users", required = false) List<Integer> users,
-                                            @RequestParam(name = "states", required = false) List<String> states,
-                                            @RequestParam(name = "categories", required = false) List<Integer> categories,
-                                            @RequestParam(name = "rangeStart", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
-                                            @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-                                            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                            @RequestParam(name = "size", required = false,defaultValue = "10") int size){
-        List<EventFullDto> events = eventService.searchEvents(users,states,categories,rangeStart,rangeEnd,from,size);
+    public List<EventFullDto> searchEvents(@RequestParam(name = "users", required = false) List<Integer> users,
+                                           @RequestParam(name = "states", required = false) List<String> states,
+                                           @RequestParam(name = "categories", required = false) List<Integer> categories,
+                                           @RequestParam(name = "rangeStart", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+                                           @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+                                           @RequestParam(name = "from", required = false, defaultValue = "0") int from,
+                                           @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+        List<EventFullDto> events = eventService.searchEvents(users, states, categories, rangeStart, rangeEnd, from, size);
         log.info("Выполнен поиск событий через API администратора");
         return events;
     }

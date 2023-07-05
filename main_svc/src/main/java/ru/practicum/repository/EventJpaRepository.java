@@ -31,7 +31,7 @@ public interface EventJpaRepository extends JpaRepository<Event, Integer> {
 
     @Query("SELECT e " +
             "FROM Event as e " +
-            "JOIN FETCH e.initiator "+
+            "JOIN FETCH e.initiator " +
             "WHERE e.id in ?1 ")
     List<Event> findEventsWIthUsersByIdSet(Set<Integer> eventIds);
 }

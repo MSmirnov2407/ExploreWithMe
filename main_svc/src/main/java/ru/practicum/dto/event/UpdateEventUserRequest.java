@@ -5,7 +5,6 @@ import lombok.Setter;
 import org.springframework.lang.Nullable;
 import ru.practicum.model.Location;
 
-import javax.validation.constraints.Null;
 import javax.validation.constraints.Size;
 
 /**

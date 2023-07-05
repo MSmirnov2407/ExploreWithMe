@@ -34,7 +34,7 @@ public class ParticipationService {
     public ParticipationService(ParticipationJpaRepository participationJpaRepository,
                                 UserService userService, CategoryService categoryService,
                                 EventJpaRepository eventJpaRepository
-                                ) {
+    ) {
         this.participationJpaRepository = participationJpaRepository;
         this.userService = userService;
         this.eventJpaRepository = eventJpaRepository;
@@ -91,7 +91,7 @@ public class ParticipationService {
             eventFullDto.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
 
             User eventInitiator = UserMapper.toUser(userService.getUserById(eventFullDto.getInitiator().getId()));
-            eventJpaRepository.save(EventMapper.toEvent(eventFullDto,eventInitiator)); //сохранили в ремозитории информацию о событии
+            eventJpaRepository.save(EventMapper.toEvent(eventFullDto, eventInitiator)); //сохранили в ремозитории информацию о событии
         }
         ParticipationRequest partRequest = participationJpaRepository.save(newPartRequest);
         return ParticipationMapper.toDto(partRequest);

@@ -58,7 +58,7 @@ public class EventMapper {
         return event;
     }
 
-    public static Event toEvent(EventFullDto eventFullDto,User user) {
+    public static Event toEvent(EventFullDto eventFullDto, User user) {
         Event event = new Event();
 
         /*заполняем поля объекта значениями из DTO*/

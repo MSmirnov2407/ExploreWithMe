@@ -60,14 +60,15 @@ public class ParticipationRequestControllerPrivate {
 
     /**
      * Отмена своего запроса на участие в событии
-     * @param userId - id пользователя
+     *
+     * @param userId    - id пользователя
      * @param requestId - id запроса
      */
     @PatchMapping("/{requestId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto patchRequestCancel(@PathVariable(name = "userId") int userId,
-                                   @PathVariable(name = "requestId") int requestId) {
-        ParticipationRequestDto participationRequestDto = participationService.patchRequestCancel(userId,requestId);
+                                                      @PathVariable(name = "requestId") int requestId) {
+        ParticipationRequestDto participationRequestDto = participationService.patchRequestCancel(userId, requestId);
         log.info("Отмена заявки Id={} от пользователя с userid={}", requestId, userId);
         return participationRequestDto;
     }

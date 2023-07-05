@@ -15,7 +15,6 @@ import ru.practicum.model.User;
 import ru.practicum.repository.UserJpaRepository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

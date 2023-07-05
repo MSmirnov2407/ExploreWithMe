@@ -97,7 +97,7 @@ public class EventService {
 
         /*преобразуем список событий в список DTO с указанием кол-ва просмотров*/
         return events.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -128,7 +128,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(events.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return events.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -155,7 +155,7 @@ public class EventService {
         }
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
-        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(),0L));
+        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
 
@@ -177,7 +177,7 @@ public class EventService {
         }
         Event event = eventOptional.get();
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(),0L));
+        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
     /**
@@ -288,7 +288,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         Optional<Event> eventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(eventOptional.get(), idViewsMap.getOrDefault(event.getId(),0L));
+        return EventMapper.toFullDto(eventOptional.get(), idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
     /**
@@ -361,17 +361,17 @@ public class EventService {
                     if (HOURS.between(LocalDateTime.now(), event.getEventDate()) < 1) { //если до события менее 1 часа
                         throw new CreateConditionException("Начало события должно быть минимум на один час позже момента публикации");
                     }
-                    if(event.getState() == EventState.PUBLISHED){
-                        throw new DataConflictException("Попытка опубликовать событие с id="+event.getId()+", которое уже опубликоано.");
+                    if (event.getState() == EventState.PUBLISHED) {
+                        throw new DataConflictException("Попытка опубликовать событие с id=" + event.getId() + ", которое уже опубликоано.");
                     }
-                    if(event.getState() == EventState.CANCELED){
-                        throw new DataConflictException("Попытка опубликовать событие с id="+event.getId()+", которое уже отменено.");
+                    if (event.getState() == EventState.CANCELED) {
+                        throw new DataConflictException("Попытка опубликовать событие с id=" + event.getId() + ", которое уже отменено.");
                     }
                     event.setState(EventState.PUBLISHED);
                     break;
                 case REJECT_EVENT:
-                    if(event.getState() == EventState.PUBLISHED){
-                        throw new DataConflictException("Попытка отменить событие с id="+event.getId()+", которое уже опубликоано.");
+                    if (event.getState() == EventState.PUBLISHED) {
+                        throw new DataConflictException("Попытка отменить событие с id=" + event.getId() + ", которое уже опубликоано.");
                     }
                     event.setState(EventState.CANCELED);
                     break;
@@ -386,7 +386,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         Optional<Event> updatedEventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(updatedEventOptional.get(), idViewsMap.getOrDefault(event.getId(),0L));
+        return EventMapper.toFullDto(updatedEventOptional.get(), idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
     /**
@@ -583,7 +583,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return resultEvents.stream()
-                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
+                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -713,7 +713,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return resultEvents.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -729,7 +729,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(eventList.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return eventList.stream()
-                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
+                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(), 0L)))
                 .collect(Collectors.toSet());
     }
 

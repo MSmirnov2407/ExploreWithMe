@@ -56,11 +56,11 @@ public class CategoryService {
         if (categoryOptional.isEmpty()) {
             throw new ElementNotFoundException("Категория с id= " + catId + " не найдена");
         }
-       try {
-           categoryJpaRepository.deleteById(catId);
-       }catch (RuntimeException ex){
-           throw new DataConflictException("Невозможно удалить категорию. Возможно, существуют связанные события");
-       }
+        try {
+            categoryJpaRepository.deleteById(catId);
+        } catch (RuntimeException ex) {
+            throw new DataConflictException("Невозможно удалить категорию. Возможно, существуют связанные события");
+        }
     }
 
     /**

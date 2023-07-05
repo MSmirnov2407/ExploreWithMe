@@ -28,7 +28,7 @@ public class CompilationMapper {
 
         /*составляем список URI событий из подборки*/
         Set<Event> events = compilation.getEvents(); //получили список событий
-        if(events == null || events.size() ==0){
+        if (events == null || events.size() == 0) {
             return compilationDto;
         }
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(events.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>

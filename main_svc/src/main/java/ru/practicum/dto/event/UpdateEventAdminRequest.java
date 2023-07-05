@@ -5,7 +5,6 @@ import lombok.Setter;
 import org.springframework.lang.Nullable;
 import ru.practicum.model.Location;
 
-import javax.validation.constraints.Null;
 import javax.validation.constraints.Size;
 
 /**
@@ -18,7 +17,7 @@ public class UpdateEventAdminRequest {
     @Size(min = 20, max = 2000)
     private String annotation; //новая аннотация
     private int category; //новая категория
-   @Nullable
+    @Nullable
     @Size(min = 20, max = 7000)
     private String description;   //новое описание
     private String eventDate;//Новые Дата и время на которые намечено событие yyyy-MM-dd HH:mm:ss

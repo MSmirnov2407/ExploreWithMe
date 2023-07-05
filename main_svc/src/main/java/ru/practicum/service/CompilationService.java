@@ -151,7 +151,7 @@ public class CompilationService {
 
         Set<Integer> eventIds = updateRequest.getEvents();
         Set<Event> eventsSet; //сет событий полученный по сету id
-        if(eventIds == null || eventIds.isEmpty()){
+        if (eventIds == null || eventIds.isEmpty()) {
             eventsSet = new HashSet<>();
         } else {
             eventsSet = eventService.getEventsByIds(eventIds); //взяли сет событий по списку id
@@ -159,11 +159,11 @@ public class CompilationService {
 
         /*обновляем значения полей*/
         Boolean pinned = updateRequest.getPinned();
-        if (pinned != null){
+        if (pinned != null) {
             compilation.setPinned(pinned);
         }
         String title = updateRequest.getTitle();
-        if (title != null){
+        if (title != null) {
             compilation.setTitle(title);
         }
         compilation.setEvents(eventsSet);

@@ -85,6 +85,7 @@ public class StatsJpaRepositoryTest {
         assertThat(result.size(), equalTo(2)); //проверка велчины списка (два эндпоинта)
         assertThat(result.get(0).getHits(), equalTo(4L)); //запросы с повторного ip тоже считаются
     }
+
     @Test
     void getStatsUniqueWithUriTest() {
         LocalDateTime start = LocalDateTime.now().minusMinutes(25); //стартовое время выборки
@@ -96,6 +97,7 @@ public class StatsJpaRepositoryTest {
         assertThat(result.size(), equalTo(2)); //проверка велчины списка (два эндпоинта)
         assertThat(result.get(0).getHits(), equalTo(2L)); //запросы с повторного ip НЕ считаются
     }
+
     @Test
     void getStatsNotUniqueTestWithStartCondition() {
         LocalDateTime start = LocalDateTime.now().minusMinutes(8); //стартовое время выборки такое, чтобы не все запросы попали в выборку

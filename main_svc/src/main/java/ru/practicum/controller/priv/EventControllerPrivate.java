@@ -113,7 +113,7 @@ public class EventControllerPrivate {
                                                            @PathVariable(name = "eventId") int eventId,
                                                            @RequestBody EventRequestStatusUpdateRequest statusUpdateRequest) {
         EventRequestStatusUpdateResult updateStatusResult = eventService.updateStatus(userId, eventId, statusUpdateRequest);
-        log.info("Обновлен статус события с Id={} , добавленное пользователем с id={}. Статус = {}", eventId, userId,statusUpdateRequest.getStatus().toString());
+        log.info("Обновлен статус события с Id={} , добавленное пользователем с id={}. Статус = {}", eventId, userId, statusUpdateRequest.getStatus().toString());
         return updateStatusResult;
     }
 
