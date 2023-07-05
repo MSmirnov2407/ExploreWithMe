@@ -36,11 +36,9 @@ public class EventService {
     private final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventJpaRepository eventJpaRepository;
 
-
     private final CategoryService categoryService;
     private final UserService userService;
     private final ParticipationService participationService;
-
     private final EntityManager entityManager;
 
     @Autowired
@@ -101,7 +99,6 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Получение списка событий, добавленных указанным пользователем
      *
@@ -157,7 +154,6 @@ public class EventService {
 
         return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
     }
-
 
     /**
      * Получение события по id

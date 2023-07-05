@@ -32,7 +32,6 @@ public class StatsClient {
                 .build();
     }
 
-
     public static List<EndpointStats> getStats(LocalDateTime startTime, LocalDateTime endTime, @Nullable String[] uris, @Nullable Boolean unique) {
         String startString = startTime.format(TIME_FORMAT);
         String endString = endTime.format(TIME_FORMAT);
