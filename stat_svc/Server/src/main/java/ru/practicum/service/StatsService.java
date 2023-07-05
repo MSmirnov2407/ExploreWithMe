@@ -3,10 +3,7 @@ package ru.practicum.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import ru.practicum.dto.EndpointHitDto;
-import ru.practicum.dto.EndpointHitMapper;
-import ru.practicum.dto.EndpointStats;
-import ru.practicum.dto.RequestParamDto;
+import ru.practicum.dto.*;
 import ru.practicum.repository.StatsJpaRepository;
 
 import javax.persistence.criteria.Expression;
@@ -81,7 +78,7 @@ public class StatsService {
                 System.out.println("StatsSERVER - getStats- specification: "+word.toLowerCase() + "%");
                 Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
                     Expression<String> uriLowerCase = builder.lower(root.get("uri"));
-                    return builder.like(uriLowerCase, word.toLowerCase() + "%");
+                    return builder.like(uriLowerCase, word.toLowerCase());
                 };
                 if (specification == null) {
                     specification = wordSpecification;
@@ -97,21 +94,39 @@ public class StatsService {
         /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
-                return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
+                List<EndpointStats>  result =  statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
+            //todo удалить вывод
+                for(var e: result){
+                    System.out.println("StatService - getStats - result " +e.getUri());
+                }
+                return result;
             } else {
                 //todo удалить лишнее
                 //return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
-                return statsJpaRepository.getStatsUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+                //todo удалить вывод
+                List<EndpointStats>  result = statsJpaRepository.getStatsUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+                for(var e: result){
+                    System.out.println("StatService - getStats - result "+e.getUri());
+                }
+                return result;
             }
         } else { // !unique
             if (uris == null) {
-                return statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
+                List<EndpointStats>  result =  statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
+                //todo удалить вывод
+                for(var e: result){
+                    System.out.println("StatService - getStats - result "+e.getUri());
+                }
+                return result;
             } else {
                 //todo удалить лишнее
 
                 // return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
-                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
-
+                List<EndpointStats>  result = statsJpaRepository.getStatsNotUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+                for(var e: result){
+                    System.out.println("StatService - getStats - result "+e.getUri());
+                }
+                return result;
             }
         }
     }

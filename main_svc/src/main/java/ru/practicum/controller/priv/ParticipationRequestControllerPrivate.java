@@ -34,7 +34,7 @@ public class ParticipationRequestControllerPrivate {
      * @return - DTO запроса
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto postParticipationRequest(@PathVariable(name = "userId") int userId,
                                                             @RequestParam(name = "eventId", required = true) int eventId) {
         EventFullDto eventFullDto = eventService.getEventById(eventId);

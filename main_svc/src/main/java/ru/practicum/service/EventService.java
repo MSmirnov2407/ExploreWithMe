@@ -20,10 +20,7 @@ import ru.practicum.repository.EventJpaRepository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -557,7 +554,8 @@ public class EventService {
         if (from < 0 || size < 1) { //проверка параметров запроса
             throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
         }
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
+        //todo del
+        //PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
 
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
@@ -574,41 +572,46 @@ public class EventService {
         List<Event> resultEvents = null;
         Predicate complexPredicate = null;
         if (rangeStart != null && rangeEnd != null) {
-            Predicate predicateFotDateTime
+            Predicate predicateForDateTime
                     = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), rangeStart, rangeEnd);
-            complexPredicate = predicateFotDateTime;
+            complexPredicate = predicateForDateTime;
         }
         if (users != null && !users.isEmpty()) {
-            /*берем из репозитория спикок юзеров*/
-//            List<User> usersList = userService.getAllUsers(users).stream()
-//                    .map(UserMapper::toUser)
-//                    .collect(Collectors.toList());
             /*строим предикат по инициатору событий*/
-            Predicate predicateFotUsersId
+            Predicate predicateForUsersId
                     = eventRoot.get("initiator").get("id").in(users);
             if (complexPredicate == null) {
-                complexPredicate = predicateFotUsersId;
+                complexPredicate = predicateForUsersId;
             } else {
-                complexPredicate = criteriaBuilder.and(complexPredicate, predicateFotUsersId); //прикрепили к общему предикату по AND
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForUsersId); //прикрепили к общему предикату по AND
+            }
+        }
+        if (categories != null && !categories.isEmpty()) {
+            /*строим предикат по категории событий*/
+            Predicate predicateForCategoryId
+                    = eventRoot.get("category").get("id").in(categories);
+            if (complexPredicate == null) {
+                complexPredicate = predicateForCategoryId;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForCategoryId); //прикрепили к общему предикату по AND
             }
         }
         if (states != null && !states.isEmpty()) {
-            Predicate predicateFotStates
+            Predicate predicateForStates
                     = eventRoot.get("state").as(String.class).in(states);
             if (complexPredicate == null) {
-                complexPredicate = predicateFotStates;
+                complexPredicate = predicateForStates;
             } else {
-                complexPredicate = criteriaBuilder.and(complexPredicate, predicateFotStates); //прикрепили к общему предикату по AND
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForStates); //прикрепили к общему предикату по AND
             }
         }
         if (complexPredicate != null) {
             criteriaQuery.where(complexPredicate); //если были добавлены предикаты, то применяем их к запросу
-            //resultEvents = entityManager.createQuery(criteriaQuery).getResultList();
         }
-        TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery);
-        typedQuery.setFirstResult(from);
-        typedQuery.setMaxResults(size);
-        resultEvents = typedQuery.getResultList();
+        TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery); //формируем итоговый запрос с построенными по предикатам критериями выборки
+        typedQuery.setFirstResult(from); //пагинация
+        typedQuery.setMaxResults(size); //пагинация
+        resultEvents = typedQuery.getResultList(); //получаем результат запроса
 
         //todo del
         System.out.println("EventService после всех предикатов!!!!!!!!!!!!!!");
@@ -623,6 +626,7 @@ public class EventService {
         if (resultEvents == null || resultEvents.isEmpty()) { //если нет событий, возвращаем пустой список
             return new ArrayList<EventFullDto>();
         }
+
 
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
@@ -651,12 +655,87 @@ public class EventService {
         if (from < 0 || size < 1) { //проверка параметров запроса
             throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
         }
-        PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
         CriteriaQuery<Event> criteriaQuery = criteriaBuilder.createQuery(Event.class); //создаем объект CriteriaQuery с помощью CriteriaBuilder
-        Root<Event> eventRoot = criteriaQuery.from(Event.class);
-        criteriaQuery.select(eventRoot);
+        Root<Event> eventRoot = criteriaQuery.from(Event.class); //обпределяем базовую сущность
+        criteriaQuery.select(eventRoot); //основываем критерии запросов на выборке данных по базовой сущности
+
+        /*строим предикаты*/
+        List<Event> resultEvents = null;
+        Predicate complexPredicate = null;
+        /*предикат дата и время события*/
+        if (rangeStart != null && rangeEnd != null) {
+            complexPredicate
+                    = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), rangeStart, rangeEnd);
+        } else {
+            complexPredicate
+                    = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), LocalDateTime.now(), LocalDateTime.of(9999, 1,1,1,1,1));
+        }
+        /*предикат по содержанию теста*/
+        if (text != null && !text.isBlank()) {
+            Expression<String> annotationLowerCase = criteriaBuilder.lower(eventRoot.get("annotation"));
+            Expression<String> descriptionLowerCase = criteriaBuilder.lower(eventRoot.get("description"));
+            Predicate predicateForAnnotation
+                    = criteriaBuilder.like(annotationLowerCase,"%"+text.toLowerCase()+"%");
+            Predicate predicateForDescription
+                    = criteriaBuilder.like(descriptionLowerCase,"%"+text.toLowerCase()+"%");
+            Predicate predicateForText = criteriaBuilder.or(predicateForAnnotation, predicateForDescription); //предикаты по ИЛИ
+            if (complexPredicate == null) {
+                complexPredicate = predicateForText;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForText); //прикрепили к общему предикату по AND
+            }
+        }
+        /*предикат по категории событий*/
+        if (categories != null && !categories.isEmpty()) {
+            Predicate predicateForCategoryId
+                    = eventRoot.get("category").get("id").in(categories);
+            if (complexPredicate == null) {
+                complexPredicate = predicateForCategoryId;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForCategoryId); //прикрепили к общему предикату по AND
+            }
+        }
+        /*предикат по условию необходимости оплаты*/
+        if (paid != null) {
+            Predicate predicateForPaid
+                    = criteriaBuilder.equal(eventRoot.get("paid"),paid);
+            if (complexPredicate == null) {
+                complexPredicate = predicateForPaid;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForPaid); //прикрепили к общему предикату по AND
+            }
+        }
+        /*предикат по условию наличия свободных мест*/
+        if (onlyAvailable != null) {
+            Predicate predicateForOnlyAvailable
+                    = criteriaBuilder.lt(eventRoot.get("confirmedRequests"),eventRoot.get("participantLimit"));
+            if (complexPredicate == null) {
+                complexPredicate = predicateForOnlyAvailable;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForOnlyAvailable); //прикрепили к общему предикату по AND
+            }
+        }
+        /*предикат по условию поиска только среди опубликованных событий*/
+        if (paid != null) {
+            Predicate predicateForPublished
+                    = criteriaBuilder.equal(eventRoot.get("state"), EventState.PUBLISHED);
+            if (complexPredicate == null) {
+                complexPredicate = predicateForPublished;
+            } else {
+                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForPublished); //прикрепили к общему предикату по AND
+            }
+        }
+        if (complexPredicate != null) {
+            criteriaQuery.where(complexPredicate); //если были добавлены предикаты, то применяем их к запросу
+        }
+        TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery); //формируем итоговый запрос с построенными по предикатам критериями выборки
+        typedQuery.setFirstResult(from); //пагинация
+        typedQuery.setMaxResults(size); //пагинация
+        resultEvents = typedQuery.getResultList(); //получаем результат запроса
+
+
 
         /*сохранение данных о запросе в сервисе статистики*/
         EndpointHitDto endpointHitDto = new EndpointHitDto();
@@ -667,7 +746,15 @@ public class EventService {
 
         StatsClient.postHit(endpointHitDto); //сохраняем информацию о запросе в сервисе статистики
 
-        return null;
+        if (resultEvents == null || resultEvents.isEmpty()) { //если нет событий, возвращаем пустой список
+            return new ArrayList<EventShortDto>();
+        }
+
+        Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+
+        return  resultEvents.stream()
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.get(e.getId())))
+                .collect(Collectors.toList());
     }
 
     public Set<EventFullDto> getEventsByIdSet(Set<Integer> eventIds) {

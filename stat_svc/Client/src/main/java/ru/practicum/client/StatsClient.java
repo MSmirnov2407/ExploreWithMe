@@ -48,7 +48,7 @@ public class StatsClient {
         if (uris != null) {
             StringBuilder urisSb = new StringBuilder();
             Arrays.asList(uris)
-                            .forEach(urisSb::append);
+                    .forEach(urisSb::append);
             parameters.put("uris", urisSb.toString());
             sb.append("&uris={uris}");
         }
@@ -85,7 +85,9 @@ public class StatsClient {
      * @return - <id события, количество просмотров>
      */
     public static Map<Integer, Long> getMapIdViews(Collection<Integer> eventsId) {
-
+        if (eventsId == null || eventsId.isEmpty()) {
+            return new HashMap<>();
+        }
         //todo удалить вывод
         for (var e : eventsId) {
             System.out.println("StatsClient : getMapsView eventsId =" + e);
@@ -120,15 +122,13 @@ public class StatsClient {
 
         if (endpointStatsList == null || endpointStatsList.isEmpty()) { //если нет статистики по эндпоинтам, возвращаем мапу с нулевыми просмотрами
             return eventsId.stream()
-                    .collect(Collectors.toMap(e -> e, e->0L));
+                    .collect(Collectors.toMap(e -> e, e -> 0L));
         }
         /*превращаем список EndpointStats в мапу <id события, кол-во просмотров>*/
         Map<Integer, Long> idViewsMap = endpointStatsList.stream()
                 .collect(Collectors.toMap(e -> {
                             String[] splitUri = e.getUri().split("/"); //делим URI /events/1
-                            System.out.println("idViewsMap +// 0/+ " + splitUri[0]);
-                            System.out.println("idViewsMap +// 1/+ " + splitUri[1]);
-                            Arrays.asList(splitUri).forEach(s->System.out.println("idViewsMap + elements+ "+e));
+                            Arrays.asList(splitUri).forEach(s -> System.out.println("idViewsMap + elements+///+ " + s));
                             return Integer.valueOf(splitUri[splitUri.length - 1]); //берем последний элемент разбитой строки - это id
                         },
                         EndpointStats::getHits));
