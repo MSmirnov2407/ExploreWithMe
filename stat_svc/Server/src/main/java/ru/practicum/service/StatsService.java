@@ -62,6 +62,11 @@ public class StatsService {
         LocalDateTime start = LocalDateTime.parse(startDecoded, TIME_FORMAT);
         LocalDateTime end = LocalDateTime.parse(endDecoded, TIME_FORMAT);
 
+        //проверка параметров
+        if (start.isAfter(end)) {
+            throw new RuntimeException("время начала не может быть поздне, чем  время конца выборки");
+        }
+
         String[] uris = requestParamDto.getUris();
 
         /*в зависимости от параметров запроса запрашиваем нужные данные*/
