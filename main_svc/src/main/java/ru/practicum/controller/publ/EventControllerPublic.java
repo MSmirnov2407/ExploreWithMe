@@ -32,7 +32,7 @@ public class EventControllerPublic {
                                          @RequestParam(name = "rangeStart", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
                                          @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                          @RequestParam(name = "onlyAvailable", required = false) Boolean onlyAvailable,
-                                         @RequestParam(name = "sort", required = false) String sort, //EVENT_DATE, VIEWS
+                                         @RequestParam(name = "sort", required = false) String sort,
                                          @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                          @RequestParam(name = "size", required = false,defaultValue = "10") int size,
                                          HttpServletRequest request){

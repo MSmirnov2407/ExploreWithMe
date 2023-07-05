@@ -22,6 +22,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
 import javax.servlet.http.HttpServletRequest;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -63,7 +65,7 @@ public class EventService {
         /*проверки перед добавлением*/
         LocalDateTime newEventDateTime = LocalDateTime.parse(newEventDto.getEventDate(), TIME_FORMAT); //дата и время из DTO
         if (HOURS.between(LocalDateTime.now(), newEventDateTime) < 2) { //если до события менее 2 часов
-            throw new CreateConditionException("Начало события должно быть минимум на два часа позднее текущего момента");
+            throw new BadParameterException("Начало события должно быть минимум на два часа позднее текущего момента");
         }
         //todo del
 //        if (newUserRequest.getName().isBlank()) {
@@ -137,7 +139,7 @@ public class EventService {
 
         /*преобразуем список событий в список DTO с указанием кол-ва просмотров*/
         return events.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.get(e.getId())))
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
                 .collect(Collectors.toList());
     }
 
@@ -168,7 +170,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(events.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return events.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.get(e.getId())))
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
                 .collect(Collectors.toList());
     }
 
@@ -195,7 +197,7 @@ public class EventService {
         }
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
-        return EventMapper.toFullDto(event, idViewsMap.get(event.getId()));
+        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(),0L));
     }
 
 
@@ -217,7 +219,7 @@ public class EventService {
         }
         Event event = eventOptional.get();
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-        return EventMapper.toFullDto(event, idViewsMap.get(event.getId()));
+        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(),0L));
     }
 
     /**
@@ -229,7 +231,7 @@ public class EventService {
     public EventFullDto getEventByIdWithStats(int eventId, HttpServletRequest request) {
         EventFullDto eventDto = this.getEventById(eventId); //получили запрашиваемое событие в виде DTO
         if (eventDto.getState() != EventState.PUBLISHED) {
-           throw  new ElementNotFoundException("Событие с id="+eventId+" не опубликовано");
+            throw new ElementNotFoundException("Событие с id=" + eventId + " не опубликовано");
         }
         /*сохранение данных о запросе в сервисе статистики*/
         EndpointHitDto endpointHitDto = new EndpointHitDto();
@@ -267,7 +269,7 @@ public class EventService {
         }
 
         /*провекра допустимого состояния события для изменения*/
-        if (event.getState() != EventState.PENDING && event.getState() != EventState.CANCELED) {
+        if (event.getState() == EventState.PUBLISHED) {
             throw new DataConflictException("Нельзя обновлять событие в состоянии 'Опубликовано'");
         }
 
@@ -276,8 +278,8 @@ public class EventService {
         if (!(annotation == null || annotation.isBlank())) {
             event.setAnnotation(annotation);
         }
-        int categoryId = updateRequest.getCategory();
-        if (categoryId > 0) { //если catId не ноль, то ищем категорию и прсваиваем событию
+        Integer categoryId = updateRequest.getCategory();
+        if (categoryId != null && categoryId > 0) { //если catId не ноль, то ищем категорию и прсваиваем событию
             CategoryDto categoryDto = categoryService.getCategoryById(categoryId);
             if (categoryDto != null) {
                 event.setCategory(CategoryMapper.toCategory(categoryDto));
@@ -288,7 +290,7 @@ public class EventService {
         if (!(newDateString == null || newDateString.isBlank())) { //если строка с датой не пустая
             LocalDateTime newDate = LocalDateTime.parse(newDateString, TIME_FORMAT); //пребразуем в дату
             if (HOURS.between(LocalDateTime.now(), newDate) < 2) { //если до события менее 2 часов
-                throw new CreateConditionException("Начало события должно быть минимум на два часа позднее текущего момента");
+                throw new BadParameterException("Начало события должно быть минимум на два часа позднее текущего момента");
             }
             event.setEventDate(newDate);
         }
@@ -309,15 +311,16 @@ public class EventService {
         /*если в запросе требование отмены, переводим событие в отмененное состояние
          * Если в запросе требование на ревью, переводим событие в состояние ожидания публикации*/
         String stateString = updateRequest.getStateAction();
-        switch (StateActionUser.valueOf(stateString)) {
-            case CANCEL_REVIEW:
-                event.setState(EventState.CANCELED);
-                break;
-            case SEND_TO_REVIEW:
-                event.setState(EventState.PENDING);
-                break;
+        if (stateString != null && !stateString.isBlank()) {
+            switch (StateActionUser.valueOf(stateString)) {
+                case CANCEL_REVIEW:
+                    event.setState(EventState.CANCELED);
+                    break;
+                case SEND_TO_REVIEW:
+                    event.setState(EventState.PENDING);
+                    break;
+            }
         }
-
         String title = updateRequest.getTitle();
         if (!(title == null || title.isBlank())) {
             event.setTitle(title);
@@ -327,7 +330,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         Optional<Event> eventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(eventOptional.get(), idViewsMap.get(event.getId()));
+        return EventMapper.toFullDto(eventOptional.get(), idViewsMap.getOrDefault(event.getId(),0L));
     }
 
     /**
@@ -340,7 +343,7 @@ public class EventService {
     public EventFullDto patchAdminEvent(int eventId, UpdateEventAdminRequest adminRequest) {
         /*проверка параметров запроса*/
         if (eventId < 0) {
-            throw new BadParameterException("Id соытия должен быть больше 0");
+            throw new BadParameterException("Id события должен быть больше 0");
         }
 
         /*получаем событие*/
@@ -373,7 +376,7 @@ public class EventService {
         if (!(newDateString == null || newDateString.isBlank())) { //если строка с датой не пустая
             LocalDateTime newDate = LocalDateTime.parse(newDateString, TIME_FORMAT); //пребразуем в дату
             if (HOURS.between(LocalDateTime.now(), newDate) < 2) { //если до события менее 2 часов
-                throw new CreateConditionException("Начало события должно быть минимум на два часа позднее текущего момента");
+                throw new BadParameterException("Начало события должно быть минимум на два часа позднее текущего момента");
             }
             event.setEventDate(newDate);
         }
@@ -394,18 +397,28 @@ public class EventService {
         /*если в запросе требование отмены, переводим событие в отмененное состояние
          * Если в запросе требование на публикаицю,проверяем время и публикуем*/
         String stateString = adminRequest.getStateAction();
-        switch (StateActionAdmin.valueOf(stateString)) {
-            case PUBLISH_EVENT:
-                if (HOURS.between(LocalDateTime.now(), event.getEventDate()) < 1) { //если до события менее 1 часа
-                    throw new CreateConditionException("Начало события должно быть минимум на один час позже момента публикации");
-                }
-                event.setState(EventState.PUBLISHED);
-                break;
-            case REJECT_EVENT:
-                event.setState(EventState.CANCELED);
-                break;
+        if (stateString != null && !stateString.isBlank()) {
+            switch (StateActionAdmin.valueOf(stateString)) {
+                case PUBLISH_EVENT:
+                    if (HOURS.between(LocalDateTime.now(), event.getEventDate()) < 1) { //если до события менее 1 часа
+                        throw new CreateConditionException("Начало события должно быть минимум на один час позже момента публикации");
+                    }
+                    if(event.getState() == EventState.PUBLISHED){
+                        throw new DataConflictException("Попытка опубликовать событие с id="+event.getId()+", которое уже опубликоано.");
+                    }
+                    if(event.getState() == EventState.CANCELED){
+                        throw new DataConflictException("Попытка опубликовать событие с id="+event.getId()+", которое уже отменено.");
+                    }
+                    event.setState(EventState.PUBLISHED);
+                    break;
+                case REJECT_EVENT:
+                    if(event.getState() == EventState.PUBLISHED){
+                        throw new DataConflictException("Попытка отменить событие с id="+event.getId()+", которое уже опубликоано.");
+                    }
+                    event.setState(EventState.CANCELED);
+                    break;
+            }
         }
-
         String title = adminRequest.getTitle();
         if (!(title == null || title.isBlank())) {
             event.setTitle(title);
@@ -415,7 +428,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         Optional<Event> updatedEventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(updatedEventOptional.get(), idViewsMap.get(event.getId()));
+        return EventMapper.toFullDto(updatedEventOptional.get(), idViewsMap.getOrDefault(event.getId(),0L));
     }
 
     /**
@@ -482,7 +495,7 @@ public class EventService {
             for (int id : updateRequest.getRequestIds()) {//для каджого Id из запроса на обновление
                 ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
                 if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
-                    prDto.setStatus(RequestStatus.REJECTED.toString()); // подтверждаем
+                    prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
                     participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
                     updateResult.getRejectedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
                 } else { //иначе исключение
@@ -626,12 +639,20 @@ public class EventService {
         if (resultEvents == null || resultEvents.isEmpty()) { //если нет событий, возвращаем пустой список
             return new ArrayList<EventFullDto>();
         }
-
+//todo
+        for (var v: resultEvents){
+            System.out.println("EventSetvice resultEvents " +v.getId());
+        }
 
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
+        //todo
+        for (var v: idViewsMap.entrySet()){
+            System.out.println("EventSetvice searchEvents" +v.getKey()+"- "+v.getValue());
+        }
+
         return resultEvents.stream()
-                .map(e -> EventMapper.toFullDto(e, idViewsMap.get(e.getId())))
+                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
                 .collect(Collectors.toList());
     }
 
@@ -639,18 +660,19 @@ public class EventService {
      * Возвращает полную информацию о событиях, подходящих под переданные условия.
      * Если не найдено ни одного события, возвращается пустой список.
      * Запрос сохраняется в сервис статистики
-     * @param text -текст для поиска в содержимом аннотации и подробном описании события
-     * @param categories- список id категорий в которых будет вестись поиск
-    * @param paid -поиск только платных/бесплатных событий
-     * @param rangeStart  - дата и время не раньше которых должно произойти событие
-     * @param rangeEnd    -дата и время не позже которых должно произойти событие
+     *
+     * @param text          -текст для поиска в содержимом аннотации и подробном описании события
+     * @param categories-   список id категорий в которых будет вестись поиск
+     * @param paid          -поиск только платных/бесплатных событий
+     * @param rangeStart    - дата и время не раньше которых должно произойти событие
+     * @param rangeEnd      -дата и время не позже которых должно произойти событие
      * @param onlyAvailable - только события у которых не исчерпан лимит запросов на участие
-     * @param sort - Вариант сортировки: по дате события или по количеству просмотров EVENT_DATE, VIEWS
-     * @param from        - количество событий, которые нужно пропустить для формирования текущего набора
-     * @param size        - количество событий в наборе
+     * @param sort          - Вариант сортировки: по дате события или по количеству просмотров EVENT_DATE, VIEWS
+     * @param from          - количество событий, которые нужно пропустить для формирования текущего набора
+     * @param size          - количество событий в наборе
      * @return - Список DTO
      */
-    public List<EventShortDto> searchEventsWithStats(String text, List<Integer> categories, Boolean paid,LocalDateTime rangeStart, LocalDateTime rangeEnd,Boolean onlyAvailable,String sort, int from, int size, HttpServletRequest request){
+    public List<EventShortDto> searchEventsWithStats(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, int from, int size, HttpServletRequest request) {
         /*проверка параметров запроса*/
         if (from < 0 || size < 1) { //проверка параметров запроса
             throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
@@ -670,16 +692,20 @@ public class EventService {
                     = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), rangeStart, rangeEnd);
         } else {
             complexPredicate
-                    = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), LocalDateTime.now(), LocalDateTime.of(9999, 1,1,1,1,1));
+                    = criteriaBuilder.between(eventRoot.get("eventDate").as(LocalDateTime.class), LocalDateTime.now(), LocalDateTime.of(9999, 1, 1, 1, 1, 1));
         }
         /*предикат по содержанию теста*/
         if (text != null && !text.isBlank()) {
+            String decodeText = URLDecoder.decode(text, StandardCharsets.UTF_8); //переводим текст в кодировку UTF_8
+//todo del
+            System.out.println("EventService searchEventsWithStats decodeText " + decodeText);
+
             Expression<String> annotationLowerCase = criteriaBuilder.lower(eventRoot.get("annotation"));
             Expression<String> descriptionLowerCase = criteriaBuilder.lower(eventRoot.get("description"));
             Predicate predicateForAnnotation
-                    = criteriaBuilder.like(annotationLowerCase,"%"+text.toLowerCase()+"%");
+                    = criteriaBuilder.like(annotationLowerCase, "%" + decodeText.toLowerCase() + "%");
             Predicate predicateForDescription
-                    = criteriaBuilder.like(descriptionLowerCase,"%"+text.toLowerCase()+"%");
+                    = criteriaBuilder.like(descriptionLowerCase, "%" + decodeText.toLowerCase() + "%");
             Predicate predicateForText = criteriaBuilder.or(predicateForAnnotation, predicateForDescription); //предикаты по ИЛИ
             if (complexPredicate == null) {
                 complexPredicate = predicateForText;
@@ -689,6 +715,9 @@ public class EventService {
         }
         /*предикат по категории событий*/
         if (categories != null && !categories.isEmpty()) {
+            if (categories.stream().anyMatch(c -> c <= 0)) {
+                throw new BadParameterException("Id категории должен быть > 0");
+            }
             Predicate predicateForCategoryId
                     = eventRoot.get("category").get("id").in(categories);
             if (complexPredicate == null) {
@@ -700,7 +729,7 @@ public class EventService {
         /*предикат по условию необходимости оплаты*/
         if (paid != null) {
             Predicate predicateForPaid
-                    = criteriaBuilder.equal(eventRoot.get("paid"),paid);
+                    = criteriaBuilder.equal(eventRoot.get("paid"), paid);
             if (complexPredicate == null) {
                 complexPredicate = predicateForPaid;
             } else {
@@ -710,7 +739,7 @@ public class EventService {
         /*предикат по условию наличия свободных мест*/
         if (onlyAvailable != null) {
             Predicate predicateForOnlyAvailable
-                    = criteriaBuilder.lt(eventRoot.get("confirmedRequests"),eventRoot.get("participantLimit"));
+                    = criteriaBuilder.lt(eventRoot.get("confirmedRequests"), eventRoot.get("participantLimit"));
             if (complexPredicate == null) {
                 complexPredicate = predicateForOnlyAvailable;
             } else {
@@ -718,18 +747,36 @@ public class EventService {
             }
         }
         /*предикат по условию поиска только среди опубликованных событий*/
-        if (paid != null) {
-            Predicate predicateForPublished
-                    = criteriaBuilder.equal(eventRoot.get("state"), EventState.PUBLISHED);
-            if (complexPredicate == null) {
-                complexPredicate = predicateForPublished;
-            } else {
-                complexPredicate = criteriaBuilder.and(complexPredicate, predicateForPublished); //прикрепили к общему предикату по AND
-            }
+
+        Predicate predicateForPublished
+                = criteriaBuilder.equal(eventRoot.get("state"), EventState.PUBLISHED);
+        if (complexPredicate == null) {
+            complexPredicate = predicateForPublished;
+        } else {
+            complexPredicate = criteriaBuilder.and(complexPredicate, predicateForPublished); //прикрепили к общему предикату по AND
         }
+
+        /*применение всех предикатов к запросу*/
         if (complexPredicate != null) {
             criteriaQuery.where(complexPredicate); //если были добавлены предикаты, то применяем их к запросу
         }
+
+        //todo del
+        System.out.println("EventService searchEventsWithStats перед сортировкой ");
+
+        /*применение сортировки к запросу*/
+//        switch (sort) {
+//            case "EVENT_DATE":
+//                criteriaQuery.orderBy(criteriaBuilder.desc(eventRoot.get("eventDate")));
+//                break;
+//            case "VIEWS":
+//                criteriaQuery.orderBy(criteriaBuilder.desc(eventRoot.get("views")));
+//                break;
+//        }
+        //todo del
+        System.out.println("EventService searchEventsWithStats ПОСЛЕ сортировки ");
+
+
         TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery); //формируем итоговый запрос с построенными по предикатам критериями выборки
         typedQuery.setFirstResult(from); //пагинация
         typedQuery.setMaxResults(size); //пагинация
@@ -750,10 +797,20 @@ public class EventService {
             return new ArrayList<EventShortDto>();
         }
 
+        //todo del
+        for (var v : resultEvents) {
+            System.out.println("EventService searchEventsWithStats resultEvents " + v.getId());
+        }
+
+
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
-        return  resultEvents.stream()
-                .map(e -> EventMapper.toShortDto(e, idViewsMap.get(e.getId())))
+        //todo del
+        //todo del
+        System.out.println("EventService searchEventsWithStats resultEvents " + idViewsMap.keySet());
+
+        return resultEvents.stream()
+                .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
                 .collect(Collectors.toList());
     }
 
@@ -769,7 +826,7 @@ public class EventService {
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(eventList.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
 
         return eventList.stream()
-                .map(e -> EventMapper.toFullDto(e, idViewsMap.get(e.getId())))
+                .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
                 .collect(Collectors.toSet());
     }
 

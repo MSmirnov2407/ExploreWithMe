@@ -7,10 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.categoty.NewCategoryDto;
-import ru.practicum.exception.AlreadyExistException;
-import ru.practicum.exception.BadParameterException;
-import ru.practicum.exception.ElementNotFoundException;
-import ru.practicum.exception.PaginationParametersException;
+import ru.practicum.exception.*;
 import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryJpaRepository;
 
@@ -66,7 +63,11 @@ public class CategoryService {
 //        if (!eventService.getEventsByCategory(catId).isEmpty()) {
 //            throw new DataConflictException("Нельзя удалить категорию, т.к. с ней связаны события");
 //        }
-        categoryJpaRepository.deleteById(catId);
+       try {
+           categoryJpaRepository.deleteById(catId);
+       }catch (RuntimeException ex){
+           throw new DataConflictException("Невозможно удалить категорию. Возможно, существуют связанные события");
+       }
     }
 
     /**

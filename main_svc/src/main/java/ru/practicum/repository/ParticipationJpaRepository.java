@@ -13,7 +13,7 @@ public interface ParticipationJpaRepository extends JpaRepository<ParticipationR
     @Query ("SELECT pr " +
             "FROM ParticipationRequest as pr " +
             "WHERE pr.requester.id = ?1 " +
-            "AND pr.id = ?2")
+            "AND pr.event.id = ?2")
     ParticipationRequest getByUserIdAndEventId(int userId, int eventId);
 
     @Query ("SELECT pr " +

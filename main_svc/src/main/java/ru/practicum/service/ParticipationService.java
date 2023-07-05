@@ -12,6 +12,7 @@ import ru.practicum.exception.BadParameterException;
 import ru.practicum.exception.CreateConditionException;
 import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.model.*;
+import ru.practicum.repository.EventJpaRepository;
 import ru.practicum.repository.ParticipationJpaRepository;
 
 import java.time.LocalDateTime;
@@ -24,16 +25,19 @@ import java.util.stream.Collectors;
 public class ParticipationService {
 
     private final ParticipationJpaRepository participationJpaRepository;
+    private final EventJpaRepository eventJpaRepository;
     //    private final EventService eventService;
     private final UserService userService;
 
 
     @Autowired
     public ParticipationService(ParticipationJpaRepository participationJpaRepository,
-                                UserService userService, CategoryService categoryService) {
+                                UserService userService, CategoryService categoryService,
+                                EventJpaRepository eventJpaRepository
+                                ) {
         this.participationJpaRepository = participationJpaRepository;
-//        this.eventService = eventService;
         this.userService = userService;
+        this.eventJpaRepository = eventJpaRepository;
     }
 
     /**
@@ -45,10 +49,12 @@ public class ParticipationService {
      */
     public ParticipationRequestDto create(int userId, EventFullDto eventFullDto) {
         ParticipationRequest newPartRequest = new ParticipationRequest();
+        if (eventFullDto == null) {
+            throw new BadParameterException("Пользователь не найден");
+        }
         int eventId = eventFullDto.getId();
         //присваиваем в запрос пользователя, событие и дату создания
         User user = UserMapper.toUser(userService.getUserById(userId));
-//        EventFullDto eventFullDto = eventService.getEventById(eventId);
 
         newPartRequest.setRequester(user);
         newPartRequest.setEvent(EventMapper.toEvent(eventFullDto, user));
@@ -69,16 +75,24 @@ public class ParticipationService {
             throw new CreateConditionException("Событие с id=" + eventId + " не опубликовано");
         }
         /*нельзя участвовать при превышении лимита заявок*/
-        if (eventFullDto.getConfirmedRequests() >= eventFullDto.getParticipantLimit()) {
-            throw new CreateConditionException("У события с id=" + eventId + " достигнут лимит участников " + eventFullDto.getParticipantLimit());
+        if (eventFullDto.getParticipantLimit() != 0) { //если ==0, то кол-во участников неограничено
+            if (eventFullDto.getConfirmedRequests() >= eventFullDto.getParticipantLimit()) {
+                throw new CreateConditionException("У события с id=" + eventId + " достигнут лимит участников " + eventFullDto.getParticipantLimit());
+            }
         }
 
-        /*если для события отключена пре-модерация запросов на участие,
+        /*если для события отключена пре-модерация запросов на участие, или нет ограничения,
         то запрос должен автоматически перейти в состояние подтвержденного*/
-        if (!eventFullDto.isRequestModeration()) {
+        if ((eventFullDto.getParticipantLimit() == 0) || (!eventFullDto.isRequestModeration())) {
             newPartRequest.setStatus(RequestStatus.CONFIRMED);
-        }
+            /*обновляем кол-во подтвержденных заявок у пользователя*/
+            int confirmedRequestsAmount = eventFullDto.getConfirmedRequests();
+            confirmedRequestsAmount++; //увеличили счетчик подтвержденных заявок
+            eventFullDto.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
 
+            User eventInitiator = UserMapper.toUser(userService.getUserById(eventFullDto.getInitiator().getId()));
+            eventJpaRepository.save(EventMapper.toEvent(eventFullDto,eventInitiator)); //сохранили в ремозитории информацию о событии
+        }
         ParticipationRequest partRequest = participationJpaRepository.save(newPartRequest);
         return ParticipationMapper.toDto(partRequest);
     }
@@ -134,7 +148,7 @@ public class ParticipationService {
 
         List<ParticipationRequest> requestList = participationJpaRepository.findAllByUserId(userId);
 
-        if (requestList == null){ //если заявок нет - возвращаем пустой лист
+        if (requestList == null) { //если заявок нет - возвращаем пустой лист
             return new ArrayList<>();
         }
         return requestList.stream()
@@ -145,10 +159,11 @@ public class ParticipationService {
 
     /**
      * Отмена своего запроса на участие в событии
-     * @param userId - Id пользвателя
+     *
+     * @param userId    - Id пользвателя
      * @param requestId - id заявки на учстие
      */
-    public ParticipationRequestDto patchRequestCancel(int userId, int requestId){
+    public ParticipationRequestDto patchRequestCancel(int userId, int requestId) {
         /*проверка входных данных*/
         if (userId < 0) {
             throw new BadParameterException("Id пользователя должен быть больше 0");
@@ -160,7 +175,7 @@ public class ParticipationService {
         if (userDto == null) {
             throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
         }
-       Optional<ParticipationRequest> partRequestOptional = participationJpaRepository.findById(requestId); //взяли  запрос на участие из репозитория по id
+        Optional<ParticipationRequest> partRequestOptional = participationJpaRepository.findById(requestId); //взяли  запрос на участие из репозитория по id
         if (partRequestOptional.isEmpty()) {
             throw new ElementNotFoundException("Заявка на участие с id= " + requestId + " не найден");
         }

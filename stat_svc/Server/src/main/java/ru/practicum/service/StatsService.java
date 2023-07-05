@@ -71,26 +71,28 @@ public class StatsService {
             System.out.println("StatsSERVER - getStats- uri: "+e);
         }
 
-        Specification<EndpointStats> specification = null;
-        if (uris != null) {
-            for (String word : uris) {
-                //todo
-                System.out.println("StatsSERVER - getStats- specification: "+word.toLowerCase() + "%");
-                Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
-                    Expression<String> uriLowerCase = builder.lower(root.get("uri"));
-                    return builder.like(uriLowerCase, word.toLowerCase());
-                };
-                if (specification == null) {
-                    specification = wordSpecification;
-                } else {
-                    specification = specification.or(wordSpecification);
-                }
-            }
+//        Specification<EndpointStats> specification = null;
+//        if (uris != null) {
+//            for (String word : uris) {
+//                //todo
+//                System.out.println("StatsSERVER - getStats- specification: "+word.toLowerCase() + "%");
+//                Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
+//                    Expression<String> uriLowerCase = builder.lower(root.get("uri"));
+//                    return builder.like(uriLowerCase, word.toLowerCase());
+//                };
+//                if (specification == null) {
+//                    specification = wordSpecification;
+//                } else {
+//                    specification = specification.or(wordSpecification);
+//                }
+//            }
             //todo удалить
 
 
             //todo удалить печать
-        }
+//        }
+
+
         /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
@@ -104,7 +106,7 @@ public class StatsService {
                 //todo удалить лишнее
                 //return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
                 //todo удалить вывод
-                List<EndpointStats>  result = statsJpaRepository.getStatsUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+                List<EndpointStats>  result = statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
                 for(var e: result){
                     System.out.println("StatService - getStats - result "+e.getUri());
                 }
@@ -122,7 +124,7 @@ public class StatsService {
                 //todo удалить лишнее
 
                 // return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
-                List<EndpointStats>  result = statsJpaRepository.getStatsNotUniqueWithUris(start, end, specification); //получение статистики уникальные ip C фильтром URI
+                List<EndpointStats>  result = statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
                 for(var e: result){
                     System.out.println("StatService - getStats - result "+e.getUri());
                 }

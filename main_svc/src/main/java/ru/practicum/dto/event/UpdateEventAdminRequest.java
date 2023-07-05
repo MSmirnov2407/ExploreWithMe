@@ -2,8 +2,10 @@ package ru.practicum.dto.event;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.lang.Nullable;
 import ru.practicum.model.Location;
 
+import javax.validation.constraints.Null;
 import javax.validation.constraints.Size;
 
 /**
@@ -12,9 +14,11 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 public class UpdateEventAdminRequest {
+    @Nullable
     @Size(min = 20, max = 2000)
     private String annotation; //новая аннотация
     private int category; //новая категория
+   @Nullable
     @Size(min = 20, max = 7000)
     private String description;   //новое описание
     private String eventDate;//Новые Дата и время на которые намечено событие yyyy-MM-dd HH:mm:ss
@@ -23,6 +27,7 @@ public class UpdateEventAdminRequest {
     private Integer participantLimit; //новый лимит пользователей
     private Boolean requestModeration; //нужна ли пре-модерация заявок на участие
     private String stateAction; //Новое состояние события
+    @Nullable
     @Size(min = 3, max = 120)
     private String title; //Новый Заголовок
 }

@@ -46,10 +46,7 @@ public class StatsClient {
         StringBuilder sb = new StringBuilder();
         sb.append("/stats?start={start}&end={end}");
         if (uris != null) {
-            StringBuilder urisSb = new StringBuilder();
-            Arrays.asList(uris)
-                    .forEach(urisSb::append);
-            parameters.put("uris", urisSb.toString());
+            parameters.put("uris", uris);
             sb.append("&uris={uris}");
         }
         if (unique != null) {
@@ -88,6 +85,7 @@ public class StatsClient {
         if (eventsId == null || eventsId.isEmpty()) {
             return new HashMap<>();
         }
+
         //todo удалить вывод
         for (var e : eventsId) {
             System.out.println("StatsClient : getMapsView eventsId =" + e);
@@ -113,7 +111,7 @@ public class StatsClient {
         }
 
         /*запрашиваем у клиента статистики данные по нужным URI*/
-        List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970, 01, 01, 01, 01), LocalDateTime.now(), uriArray, false);
+        List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970, 01, 01, 01, 01), LocalDateTime.now(), uriArray, true);
 
         //todo удалить вывод
         for (var e : endpointStatsList) {

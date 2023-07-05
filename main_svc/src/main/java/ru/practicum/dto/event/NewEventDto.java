@@ -14,10 +14,12 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 public class NewEventDto {
+    @NotNull
     @Size(min = 20, max = 2000)
     private String annotation; //Краткое описание
     @NotNull
     private int category; //категория
+    @NotNull
     @Size(min = 20, max = 7000)
     private String description;   //Полное описание события
     @NotBlank

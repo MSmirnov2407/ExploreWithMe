@@ -78,10 +78,10 @@ public class EventControllerPrivate {
         return eventFullDto;
     }
 
-    @PatchMapping()
+    @PatchMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK) //200
-    public EventFullDto patcnEvent(@PathVariable(name = "userId") int userId,
-                                   @RequestParam(name = "eventId") int eventId,
+    public EventFullDto patchEvent(@PathVariable(name = "userId") int userId,
+                                   @PathVariable(name = "eventId") int eventId,
                                    @Valid @RequestBody UpdateEventUserRequest updateRequest) {
         EventFullDto eventFullDto = eventService.patchEvent(userId, eventId, updateRequest);
         log.info("Обновлено событие с Id={} , добавленное пользователем с id={}", eventId, userId);
