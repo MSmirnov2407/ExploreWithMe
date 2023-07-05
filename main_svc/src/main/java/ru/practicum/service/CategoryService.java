@@ -19,14 +19,11 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryJpaRepository categoryJpaRepository;
-    //todo del
-//    private final EventService eventService;
 
     @Autowired
     public CategoryService(CategoryJpaRepository categoryJpaRepository) {
         this.categoryJpaRepository = categoryJpaRepository;
-        //todo del
-//        this.eventService = eventService;
+
     }
 
     /**
@@ -59,10 +56,6 @@ public class CategoryService {
         if (categoryOptional.isEmpty()) {
             throw new ElementNotFoundException("Категория с id= " + catId + " не найдена");
         }
-        //todo удалить. Ограничение сделано в schema.sql ON DELETE RESTRICT
-//        if (!eventService.getEventsByCategory(catId).isEmpty()) {
-//            throw new DataConflictException("Нельзя удалить категорию, т.к. с ней связаны события");
-//        }
        try {
            categoryJpaRepository.deleteById(catId);
        }catch (RuntimeException ex){
@@ -126,9 +119,6 @@ public class CategoryService {
      * @return - DTO категории
      */
     public CategoryDto getCategoryById(int categoryId) {
-//todo del
-        System.out.println("CategoryService getCatById= " + categoryId);
-
         /*проверка параметров запроса*/
         if (categoryId <= 0) {
             throw new BadParameterException("Id не может быть меньше 1");

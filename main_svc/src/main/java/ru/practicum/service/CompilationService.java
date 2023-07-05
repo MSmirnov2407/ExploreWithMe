@@ -30,9 +30,6 @@ public class CompilationService {
     private final EventService eventService;
     private final UserService userService;
 
-    //todo del
-    //private final StatsClient statsClient = new StatsClient(); //клинет для обращения к сервису статистики
-
     @Autowired
     public CompilationService(CompilationJpaRepository compilationJpaRepository,
                               EventService eventService, UserService userService) {

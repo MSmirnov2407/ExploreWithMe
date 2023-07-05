@@ -67,54 +67,12 @@ public class EventService {
         if (HOURS.between(LocalDateTime.now(), newEventDateTime) < 2) { //если до события менее 2 часов
             throw new BadParameterException("Начало события должно быть минимум на два часа позднее текущего момента");
         }
-        //todo del
-//        if (newUserRequest.getName().isBlank()) {
-//            throw new BadParameterException("Поле name не может быть пустым");
-//        }
-//        String newEmail = newUserRequest.getEmail();
-//        if (newEmail.isBlank()) {
-//            throw new BadParameterException("Поле email не может быть пустым");
-//        }
-//        User testUser = userJpaRepository.findByEmail(newEmail);
-//        if (testUser != null) {
-//            throw new AlreadyExistException("Пользователь с email=" + newEmail + " уже существует");
-//        }
-//        /*добавление пользователя*/
-//        User user = userJpaRepository.save(UserMapper.toUser(newUserRequest));
-//        return UserMapper.toDto(user);
-
-//        /*получение категории и пользователя из соответствующих сервисов, чтобы поместить в объект события*/
-//        CategoryDto categoryDto = categoryService.getCategoryById(newEventDto.getCategory());
-//        Category category = CategoryMapper.toCategory(categoryDto);
-//
-//        UserDto userDto = userService.getUserById(userId);
-//        User user = UserMapper.toUser(userDto);
-
         /*преобразование newEventDto в FullEventDto*/
-        //todo delete
-        System.out.println("EventService CreateEvent newEventDto getCategory=" + newEventDto.getCategory());
-
         Category category = CategoryMapper.toCategory(categoryService.getCategoryById(newEventDto.getCategory()));
         User user = UserMapper.toUser(userService.getUserById(userId));
 
         Event event = EventMapper.toEvent(newEventDto, category, user); //преобразуем в event
-//        String[] uris = {"/events/" + event.getId()}; //оформляем uri события в виде списка для дальнейшей передачи в метод statsClient
-//        List<EndpointStats> stats = StatsClient.getStats(LocalDateTime.of(1970,01,01,01,01), LocalDateTime.now(), uris, false); //статистика запросов
-//        long views = 0;
-//        if (!stats.isEmpty()) {
-//            views = stats.get(0).getHits(); //берем кол-во просомтров из единственого объекта статистики
-//        }
-
-        //todo delete
-
-        System.out.println("EventService CreateEvent event id=" + event.getId());
-        System.out.println("EventService CreateEvent event Initiatorid=" + event.getInitiator().getId());
-
         Event savedEvent = eventJpaRepository.save(event); //сохранение в репозитории
-
-        //todo delete
-        System.out.println("EventService CreateEvent savedEvent id=" + savedEvent.getId());
-        System.out.println("EventService CreateEvent savedEvent Initiatorid=" + savedEvent.getInitiator().getId());
 
         eventFullDto = EventMapper.toFullDto(savedEvent, 0); //преобразование в EventFullDto
         return eventFullDto;
@@ -567,19 +525,11 @@ public class EventService {
         if (from < 0 || size < 1) { //проверка параметров запроса
             throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
         }
-        //todo del
-        //PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
-
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
         CriteriaQuery<Event> criteriaQuery = criteriaBuilder.createQuery(Event.class); //создаем объект CriteriaQuery с помощью CriteriaBuilder
         Root<Event> eventRoot = criteriaQuery.from(Event.class);
         criteriaQuery = criteriaQuery.select(eventRoot);
-
-
-        //todo del
-        System.out.println("EventService перед предикатами!!!!!!!!!!!!!!");
-
 
         /*строим предикаты*/
         List<Event> resultEvents = null;
@@ -626,30 +576,11 @@ public class EventService {
         typedQuery.setMaxResults(size); //пагинация
         resultEvents = typedQuery.getResultList(); //получаем результат запроса
 
-        //todo del
-        System.out.println("EventService после всех предикатов!!!!!!!!!!!!!!");
-
-
-        //TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery);
-        // List<Event> events = typedQuery.getResultList(); //получили результат сложного запроса
-        //todo del
-        System.out.println("EventService после получили результат сложного запроса!!!!!!!!!!!!!!");
-
-
         if (resultEvents == null || resultEvents.isEmpty()) { //если нет событий, возвращаем пустой список
             return new ArrayList<EventFullDto>();
         }
-//todo
-        for (var v: resultEvents){
-            System.out.println("EventSetvice resultEvents " +v.getId());
-        }
 
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-
-        //todo
-        for (var v: idViewsMap.entrySet()){
-            System.out.println("EventSetvice searchEvents" +v.getKey()+"- "+v.getValue());
-        }
 
         return resultEvents.stream()
                 .map(e -> EventMapper.toFullDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
@@ -697,8 +628,6 @@ public class EventService {
         /*предикат по содержанию теста*/
         if (text != null && !text.isBlank()) {
             String decodeText = URLDecoder.decode(text, StandardCharsets.UTF_8); //переводим текст в кодировку UTF_8
-//todo del
-            System.out.println("EventService searchEventsWithStats decodeText " + decodeText);
 
             Expression<String> annotationLowerCase = criteriaBuilder.lower(eventRoot.get("annotation"));
             Expression<String> descriptionLowerCase = criteriaBuilder.lower(eventRoot.get("description"));
@@ -761,22 +690,6 @@ public class EventService {
             criteriaQuery.where(complexPredicate); //если были добавлены предикаты, то применяем их к запросу
         }
 
-        //todo del
-        System.out.println("EventService searchEventsWithStats перед сортировкой ");
-
-        /*применение сортировки к запросу*/
-//        switch (sort) {
-//            case "EVENT_DATE":
-//                criteriaQuery.orderBy(criteriaBuilder.desc(eventRoot.get("eventDate")));
-//                break;
-//            case "VIEWS":
-//                criteriaQuery.orderBy(criteriaBuilder.desc(eventRoot.get("views")));
-//                break;
-//        }
-        //todo del
-        System.out.println("EventService searchEventsWithStats ПОСЛЕ сортировки ");
-
-
         TypedQuery<Event> typedQuery = entityManager.createQuery(criteriaQuery); //формируем итоговый запрос с построенными по предикатам критериями выборки
         typedQuery.setFirstResult(from); //пагинация
         typedQuery.setMaxResults(size); //пагинация
@@ -797,17 +710,7 @@ public class EventService {
             return new ArrayList<EventShortDto>();
         }
 
-        //todo del
-        for (var v : resultEvents) {
-            System.out.println("EventService searchEventsWithStats resultEvents " + v.getId());
-        }
-
-
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(resultEvents.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-
-        //todo del
-        //todo del
-        System.out.println("EventService searchEventsWithStats resultEvents " + idViewsMap.keySet());
 
         return resultEvents.stream()
                 .map(e -> EventMapper.toShortDto(e, idViewsMap.getOrDefault(e.getId(),0L)))
@@ -844,18 +747,4 @@ public class EventService {
         List<Event> eventList = eventJpaRepository.findEventsWIthUsersByIdSet(eventIds); //получение списка событий из репозитория
         return new HashSet<>(eventList);
     }
-
-
 }
-
-
-//todo перенести в GET /evennts ?
-
-//        /*сохранение данных о запросе в сервисе статистики*/
-//        EndpointHitDto endpointHitDto = new EndpointHitDto();
-//        endpointHitDto.setApp("ewm-main-event-service");
-//        endpointHitDto.setIp(request.getRemoteAddr());
-//        endpointHitDto.setTimestamp(LocalDateTime.now().format(TIME_FORMAT));
-//        endpointHitDto.setUri("/events");
-//
-//        StatsClient.postHit(endpointHitDto); //сохраняем информацию о запросе в сервисе статистики

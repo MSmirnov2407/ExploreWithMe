@@ -1,12 +1,13 @@
 package ru.practicum.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import ru.practicum.dto.*;
+import ru.practicum.dto.EndpointHitDto;
+import ru.practicum.dto.EndpointHitMapper;
+import ru.practicum.dto.EndpointStats;
+import ru.practicum.dto.RequestParamDto;
 import ru.practicum.repository.StatsJpaRepository;
 
-import javax.persistence.criteria.Expression;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -63,87 +64,19 @@ public class StatsService {
 
         String[] uris = requestParamDto.getUris();
 
-        /**
-         * использование specification
-         */
-//todo удалить лишнее
-        for (var e : uris) {
-            System.out.println("StatsSERVER - getStats- uri: "+e);
-        }
-
-//        Specification<EndpointStats> specification = null;
-//        if (uris != null) {
-//            for (String word : uris) {
-//                //todo
-//                System.out.println("StatsSERVER - getStats- specification: "+word.toLowerCase() + "%");
-//                Specification<EndpointStats> wordSpecification = (root, query, builder) -> {
-//                    Expression<String> uriLowerCase = builder.lower(root.get("uri"));
-//                    return builder.like(uriLowerCase, word.toLowerCase());
-//                };
-//                if (specification == null) {
-//                    specification = wordSpecification;
-//                } else {
-//                    specification = specification.or(wordSpecification);
-//                }
-//            }
-            //todo удалить
-
-
-            //todo удалить печать
-//        }
-
-
         /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
-                List<EndpointStats>  result =  statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
-            //todo удалить вывод
-                for(var e: result){
-                    System.out.println("StatService - getStats - result " +e.getUri());
-                }
-                return result;
+                return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
             } else {
-                //todo удалить лишнее
-                //return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
-                //todo удалить вывод
-                List<EndpointStats>  result = statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
-                for(var e: result){
-                    System.out.println("StatService - getStats - result "+e.getUri());
-                }
-                return result;
+                return statsJpaRepository.getStatsUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
             }
         } else { // !unique
             if (uris == null) {
-                List<EndpointStats>  result =  statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
-                //todo удалить вывод
-                for(var e: result){
-                    System.out.println("StatService - getStats - result "+e.getUri());
-                }
-                return result;
+                return statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
             } else {
-                //todo удалить лишнее
-
-                // return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
-                List<EndpointStats>  result = statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
-                for(var e: result){
-                    System.out.println("StatService - getStats - result "+e.getUri());
-                }
-                return result;
+                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
             }
         }
     }
-
-    //todo del
-    /**
-     * Внутренний класс для описания спицификации условия для EndPointStats
-     */
-//    class EndPointStatsSpecification {
-//        public Specification<EndpointHit> uriStartsWith(String startWord) {
-//            return (root, query, builder) -> {
-//                Expression<String> uriLowerCase = builder.lower(root.get("uri"));
-//                return builder.like(uriLowerCase, startWord.toLowerCase() + "%");
-//            };
-//        }
-//    }
-
 }

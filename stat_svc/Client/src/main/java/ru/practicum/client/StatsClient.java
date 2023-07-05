@@ -24,7 +24,6 @@ public class StatsClient {
 
     static {
         RestTemplateBuilder builder = new RestTemplateBuilder();
-        //todo del
 //        String serverUrl = "http://localhost:9090";
         String serverUrl = "http://ewm-stat-server:9090";
 
@@ -53,25 +52,11 @@ public class StatsClient {
             parameters.put("unique", unique);
             sb.append("&unique={unique}");
         }
-        //todo del prnt
-
-        System.out.println("getStats path " + sb.toString());
-        System.out.println("getStats params " + parameters.toString());
-
-
         return makeAndSendGetStatsRequest(HttpMethod.GET, sb.toString(), parameters, null);
     }
 
     public static ResponseEntity<String> postHit(EndpointHitDto hit) {
-        //todo вывод
-        System.out.println("StatsClient postHit app =" + hit.getApp());
-        System.out.println("StatsClient postHit ip =" + hit.getIp());
-        System.out.println("StatsClient postHit uri =" + hit.getUri());
-        System.out.println("StatsClient postHit time =" + hit.getTimestamp());
-
-
         ResponseEntity<String> responseEntity = makeAndSendPostHitRequest(HttpMethod.POST, "/hit", null, hit);
-
         return responseEntity;
     }
 
@@ -85,38 +70,16 @@ public class StatsClient {
         if (eventsId == null || eventsId.isEmpty()) {
             return new HashMap<>();
         }
-
-        //todo удалить вывод
-        for (var e : eventsId) {
-            System.out.println("StatsClient : getMapsView eventsId =" + e);
-        }
-
-
         /*составляем список URI событий из подборки*/
         List<String> eventUris = eventsId.stream()
                 .map(i -> "/events/" + i)
                 .collect(Collectors.toList()); //преобразовали список событий в список URI
 
-        //todo удалить вывод
-        for (var e : eventUris) {
-            System.out.println("StatsClient : getMapsView eventUris =" + e);
-        }
-
         String[] uriArray = new String[eventUris.size()]; //создали массив строк
         eventUris.toArray(uriArray); //заполнили массив строками из списка URI
 
-//todo удалить вывод
-        for (var e : uriArray) {
-            System.out.println("StatsClient : getMapsView uriArray =" + e);
-        }
-
         /*запрашиваем у клиента статистики данные по нужным URI*/
         List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970, 01, 01, 01, 01), LocalDateTime.now(), uriArray, true);
-
-        //todo удалить вывод
-        for (var e : endpointStatsList) {
-            System.out.println("StatsClient : getMapsView endpointStatsList uri =" + e.getUri());
-        }
 
         if (endpointStatsList == null || endpointStatsList.isEmpty()) { //если нет статистики по эндпоинтам, возвращаем мапу с нулевыми просмотрами
             return eventsId.stream()
@@ -159,11 +122,6 @@ public class StatsClient {
             if (parameters != null) {
                 ewmServerResponse = rest.exchange(path, method, requestEntity, String.class, parameters);
             } else {
-                //todo удалить вывод
-                System.out.println("makeAndSendPostHitRequest path = " + path);
-                System.out.println("makeAndSendPostHitRequest method = " + method);
-                System.out.println("makeAndSendPostHitRequest requestEntity Body= " + requestEntity.getBody());
-                System.out.println("makeAndSendPostHitRequest requestEntity getHeaders= " + requestEntity.getHeaders());
                 ewmServerResponse = rest.exchange(path, method, requestEntity, String.class);
             }
         } catch (HttpStatusCodeException e) {

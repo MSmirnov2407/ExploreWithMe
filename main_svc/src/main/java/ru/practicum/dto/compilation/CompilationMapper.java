@@ -13,9 +13,6 @@ import java.util.stream.Collectors;
  * Класс, содержащий статические методоы для преобразования объекта Compilation в его DTO и обратно
  */
 public class CompilationMapper {
-    //todo del
-//    private final static StatsClient statsClient = new StatsClient();
-
     /**
      * Преобразование объекта Compilation в CompilationDto
      *
