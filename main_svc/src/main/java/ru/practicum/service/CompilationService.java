@@ -36,7 +36,6 @@ public class CompilationService {
         this.compilationJpaRepository = compilationJpaRepository;
         this.eventService = eventService;
         this.userService = userService;
-
     }
 
     /**
