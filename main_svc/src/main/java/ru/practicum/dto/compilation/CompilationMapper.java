@@ -43,16 +43,16 @@ public class CompilationMapper {
     /**
      * Преобразование CompilationDto в Compilation
      *
-     * @param CompilationDto - DTO
+     * @param compilationDto - DTO
      * @return - Compilation
      */
-    public static Compilation toComp(CompilationDto CompilationDto) {
+    public static Compilation toComp(CompilationDto compilationDto) {
         Compilation compilation = new Compilation();
 
         /*заполнение полей объекта значениями из DTO*/
-        compilation.setId(CompilationDto.getId());
-        compilation.setTitle(CompilationDto.getTitle());
-        compilation.setPinned(CompilationDto.isPinned());
+        compilation.setId(compilationDto.getId());
+        compilation.setTitle(compilationDto.getTitle());
+        compilation.setPinned(compilationDto.isPinned());
 
         return compilation;
     }

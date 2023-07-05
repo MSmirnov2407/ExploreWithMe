@@ -33,7 +33,7 @@ import static java.time.temporal.ChronoUnit.HOURS;
 
 @Service
 public class EventService {
-    private final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventJpaRepository eventJpaRepository;
 
     private final CategoryService categoryService;
@@ -446,7 +446,7 @@ public class EventService {
         boolean limitAchieved = false; // флаг достижения лимита по заявкам
 
         if (updateRequest.getStatus() == UpdateRequestState.REJECTED) { // если обновление подразумевает отклонение заявок
-            for (int id : updateRequest.getRequestIds()) {//для каджого Id из запроса на обновление
+            for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
                 ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
                 if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
                     prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
@@ -459,7 +459,7 @@ public class EventService {
             return updateResult;
         } else { // если обновление подразумевает подтверджение заявок
             if ((limit == 0 || !event.isRequestModeration())) { //если предел участников = 0 или не требуется модерация заявок,
-                for (int id : updateRequest.getRequestIds()) {//для каджого Id из запроса на обновление
+                for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
                     ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
                     if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
                         prDto.setStatus(RequestStatus.CONFIRMED.toString()); // подтверждаем
@@ -474,7 +474,7 @@ public class EventService {
                 }
                 return updateResult;
             } else { //требуется учет заявок + обновление подразумевает подтверджение заявок
-                for (int id : updateRequest.getRequestIds()) {//для каджого Id из запроса на обновление
+                for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
                     limitAchieved = confirmedRequestsAmount >= limit; //проверяем флаг достижения ограничения.
                     ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
                     if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
