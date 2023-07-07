@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Класс для вывода настрек из application.properites
+ * Класс для вывода настрек из application.properties
  */
 @Slf4j
 @Component
@@ -25,7 +25,7 @@ public class AppContextEventListener {
 
     private void printActiveProperties(ConfigurableEnvironment env) {
 
-        System.out.println("************************* ACTIVE APP PROPERTIES ******************************");
+        log.info("************************* ACTIVE APP PROPERTIES ******************************");
 
         List<MapPropertySource> propertySources = new ArrayList<>();
 
@@ -42,11 +42,11 @@ public class AppContextEventListener {
                 .sorted()
                 .forEach(key -> {
                     try {
-                        System.out.println(key + "=" + env.getProperty(key));
+                        log.info(key + "=" + env.getProperty(key));
                     } catch (Exception e) {
                         log.warn("{} -> {}", key, e.getMessage());
                     }
                 });
-        System.out.println("******************************************************************************");
+        log.info("******************************************************************************");
     }
 }

@@ -17,23 +17,6 @@ import java.util.HashSet;
 public class EventMapper {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    //todo del
-//    @Autowired
-//    private static CategoryService categoryService;
-//    @Autowired
-//    private static UserService userService;
-
-    //todo удалить или поправить
-//
-//    public static Event toEvent(EventShortDto shortDto) {
-//        Event event = new Event();
-///*заполняем поля объекта значениями из DTO*/
-//        event.setId(shortDto.getId());
-//        event.setEventDate(LocalDateTime.parse(shortDto.getEventDate(), TIME_FORMAT));
-//        event.setAnnotation(shortDto.getAnnotation());
-//        event.setCompilations(shortDto.get);
-//        return event;
-//    }
 
     public static Event toEvent(NewEventDto newEventDto, Category category, User user) {
         Event event = new Event();

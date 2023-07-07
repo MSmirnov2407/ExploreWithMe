@@ -1,6 +1,6 @@
 package ru.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -8,7 +8,6 @@ import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.exception.AlreadyExistException;
-import ru.practicum.exception.BadParameterException;
 import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.exception.PaginationParametersException;
 import ru.practicum.model.User;
@@ -16,17 +15,12 @@ import ru.practicum.repository.UserJpaRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserJpaRepository userJpaRepository;
-
-    @Autowired
-    public UserService(UserJpaRepository userJpaRepository) {
-        this.userJpaRepository = userJpaRepository;
-    }
 
     /**
      * Добавление нового пользователя
@@ -35,15 +29,9 @@ public class UserService {
      * @return - в случае успешного сохранения возвращается UserDto
      */
     public UserDto createUser(NewUserRequest newUserRequest) {
-        /*проверки перед добавлением*/
         String name = newUserRequest.getName();
-        if (name == null || name.isBlank()) {
-            throw new BadParameterException("Поле name не может быть пустым");
-        }
         String newEmail = newUserRequest.getEmail();
-        if (newEmail == null || newEmail.isBlank()) {
-            throw new BadParameterException("Поле email не может быть пустым");
-        }
+
         User testUser = userJpaRepository.findByEmail(newEmail);
         if (testUser != null) {
             throw new AlreadyExistException("Пользователь с email=" + newEmail + " уже существует");
@@ -104,10 +92,8 @@ public class UserService {
      * @param userId - id пользователя
      */
     public void deleteById(int userId) {
-        Optional<User> userOptional = userJpaRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
-        }
+        userJpaRepository.findById(userId)
+                .orElseThrow(() -> new ElementNotFoundException("Пользователь с id= " + userId + " не найден")); //проверка наличия элеменов
         userJpaRepository.deleteById(userId);
     }
 
@@ -118,11 +104,9 @@ public class UserService {
      * @return - DTO пользователя
      */
     public UserDto getUserById(int userId) {
-        Optional<User> userOptional = userJpaRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
-        }
-        return UserMapper.toDto(userOptional.get());
-    }
+        User user = userJpaRepository.findById(userId)
+                .orElseThrow(() -> new ElementNotFoundException("Пользователь с id= " + userId + " не найден")); //проверка наличия элеменов
 
+        return UserMapper.toDto(user);
+    }
 }

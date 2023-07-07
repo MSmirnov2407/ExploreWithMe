@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.service.CompilationService;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -25,8 +27,8 @@ public class CompilationControllerPublic {
      */
     @GetMapping
     public List<CompilationDto> getCompilations(@RequestParam(name = "pinned", defaultValue = "false") boolean pinned,
-                                                @RequestParam(name = "from", defaultValue = "0") int from,
-                                                @RequestParam(name = "size", defaultValue = "10") int size) {
+                                                @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
+                                                @RequestParam(name = "size", defaultValue = "10") @Positive int size) {
         List<CompilationDto> compnDtoList = compilationService.getAllComps(pinned, from, size);
         log.info("Получен список всех подборок через Публичный контроллер");
         return compnDtoList;

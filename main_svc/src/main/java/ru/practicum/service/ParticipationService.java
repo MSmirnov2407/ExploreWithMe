@@ -1,6 +1,6 @@
 package ru.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventMapper;
@@ -18,27 +18,15 @@ import ru.practicum.repository.ParticipationJpaRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ParticipationService {
 
     private final ParticipationJpaRepository participationJpaRepository;
     private final EventJpaRepository eventJpaRepository;
-    //    private final EventService eventService;
     private final UserService userService;
-
-
-    @Autowired
-    public ParticipationService(ParticipationJpaRepository participationJpaRepository,
-                                UserService userService, CategoryService categoryService,
-                                EventJpaRepository eventJpaRepository
-    ) {
-        this.participationJpaRepository = participationJpaRepository;
-        this.userService = userService;
-        this.eventJpaRepository = eventJpaRepository;
-    }
 
     /**
      * Создание запроса на участие
@@ -106,7 +94,7 @@ public class ParticipationService {
     public List<ParticipationRequestDto> getALlRequestsEventId(int eventId) {
         /*проверка параметров запроса*/
         if (eventId < 0) {
-            throw new BadParameterException("Id соытия должен быть больше 0");
+            throw new BadParameterException("Id собтия должен быть больше 0");
         }
 
         List<ParticipationRequest> partRequests = participationJpaRepository.findAllByEventId(eventId); //запрашиваем все запросы на событие
@@ -137,10 +125,7 @@ public class ParticipationService {
      * @return - список заявкок
      */
     public List<ParticipationRequestDto> getRequestsByUser(int userId) {
-        /*проверка входных данных*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
+
         UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id
         if (userDto == null) {
             throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
@@ -156,7 +141,6 @@ public class ParticipationService {
                 .collect(Collectors.toList());
     }
 
-
     /**
      * Отмена своего запроса на участие в событии
      *
@@ -164,23 +148,14 @@ public class ParticipationService {
      * @param requestId - id заявки на учстие
      */
     public ParticipationRequestDto patchRequestCancel(int userId, int requestId) {
-        /*проверка входных данных*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (requestId < 0) {
-            throw new BadParameterException("Id заявки должен быть больше 0");
-        }
+
         UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id
         if (userDto == null) {
             throw new ElementNotFoundException("Пользователь с id= " + userId + " не найден");
         }
-        Optional<ParticipationRequest> partRequestOptional = participationJpaRepository.findById(requestId); //взяли  запрос на участие из репозитория по id
-        if (partRequestOptional.isEmpty()) {
-            throw new ElementNotFoundException("Заявка на участие с id= " + requestId + " не найден");
-        }
 
-        ParticipationRequest partRequest = partRequestOptional.get(); //взяли объект из optionala
+        ParticipationRequest partRequest = participationJpaRepository.findById(requestId)
+                .orElseThrow(() -> new ElementNotFoundException("Заявка на участие с id= " + requestId + " не найден")); //взяли объект
         partRequest.setStatus(RequestStatus.CANCELED); //поставили статус Отменена
         ParticipationRequest partRequestUpdated = participationJpaRepository.save(partRequest); //сохранили в репозитории
         return ParticipationMapper.toDto(partRequestUpdated);

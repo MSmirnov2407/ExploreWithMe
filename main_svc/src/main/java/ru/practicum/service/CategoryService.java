@@ -1,30 +1,27 @@
 package ru.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.categoty.NewCategoryDto;
-import ru.practicum.exception.*;
+import ru.practicum.exception.AlreadyExistException;
+import ru.practicum.exception.BadParameterException;
+import ru.practicum.exception.DataConflictException;
+import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryJpaRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CategoryService {
 
     private final CategoryJpaRepository categoryJpaRepository;
-
-    @Autowired
-    public CategoryService(CategoryJpaRepository categoryJpaRepository) {
-        this.categoryJpaRepository = categoryJpaRepository;
-
-    }
 
     /**
      * Создание категории
@@ -35,9 +32,6 @@ public class CategoryService {
     public CategoryDto create(NewCategoryDto newCategoryDto) {
         /*проверка параметров*/
         String name = newCategoryDto.getName();
-        if (name == null || name.isBlank()) {
-            throw new BadParameterException("Имя категории не должно быть пустым");
-        }
         if (categoryJpaRepository.findByName(name) != null) {  //ищем в репозитории категорию с заданным именем
             throw new AlreadyExistException("Категория с именем " + name + " уже существует");
         }
@@ -52,10 +46,8 @@ public class CategoryService {
      * @param catId - id категории
      */
     public void deleteById(int catId) {
-        Optional<Category> categoryOptional = categoryJpaRepository.findById(catId);
-        if (categoryOptional.isEmpty()) {
-            throw new ElementNotFoundException("Категория с id= " + catId + " не найдена");
-        }
+        categoryJpaRepository.findById(catId).
+                orElseThrow(() -> new ElementNotFoundException("Категория с id= " + catId + " не найдена")); //проверка существования категории
         try {
             categoryJpaRepository.deleteById(catId);
         } catch (RuntimeException ex) {
@@ -70,16 +62,10 @@ public class CategoryService {
      * @return - обновленный DTO
      */
     public CategoryDto updateCategory(int catId, CategoryDto categoryDto) {
-        /*проверка параметров*/
         String name = categoryDto.getName();
-        if (name.isBlank()) {
-            throw new BadParameterException("Имя категории должно быть не пустым");
-        }
-        Optional<Category> categoryOptional = categoryJpaRepository.findById(catId); //запросили категорию по id
-        if (categoryOptional.isEmpty()) {
-            throw new ElementNotFoundException("категории с id=" + catId + " не существует");
-        }
-        Category category = categoryOptional.get();
+
+        Category category = categoryJpaRepository.findById(catId)
+                .orElseThrow(() -> new ElementNotFoundException("категории с id=" + catId + " не существует")); //запросили категорию по id
         if (category.getName().equals(name)) { //если имя не изменилось то возвращаем данные без обращения к БД, т.к. других полей нет
             return CategoryMapper.toDto(category);
         }
@@ -100,9 +86,6 @@ public class CategoryService {
      * @return - список DTO категорий
      */
     public List<CategoryDto> getAllCategories(int from, int size) {
-        if (from < 0 || size < 1) { //проверка параметров запроса
-            throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
-        }
         PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
 
         List<Category> categories = categoryJpaRepository.findAll(page).getContent(); //берем из репозитория нужные категории
@@ -123,13 +106,11 @@ public class CategoryService {
         if (categoryId <= 0) {
             throw new BadParameterException("Id не может быть меньше 1");
         }
-        /*запрос категории из репозитория*/
-        Optional<Category> categoryOptional = categoryJpaRepository.findById(categoryId);
-        /*проверка наличия искомого элемента*/
-        if (categoryOptional.isEmpty()) {
-            throw new ElementNotFoundException("Элемент с id=" + categoryId + " не найден");
-        }
-        return CategoryMapper.toDto(categoryOptional.get());
+
+        Category category = categoryJpaRepository.findById(categoryId)
+                .orElseThrow(() -> new ElementNotFoundException("Элемент с id=" + categoryId + " не найден")); //берем категорию из репозтороя
+
+        return CategoryMapper.toDto(category);
     }
 
 }

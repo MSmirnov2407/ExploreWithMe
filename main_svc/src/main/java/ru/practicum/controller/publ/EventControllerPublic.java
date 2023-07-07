@@ -10,6 +10,8 @@ import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,8 +35,8 @@ public class EventControllerPublic {
                                          @RequestParam(name = "rangeEnd", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                          @RequestParam(name = "onlyAvailable", required = false) Boolean onlyAvailable,
                                          @RequestParam(name = "sort", required = false) String sort,
-                                         @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                         @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+                                         @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
+                                         @RequestParam(name = "size", defaultValue = "10") @Positive int size,
                                          HttpServletRequest request) {
         List<EventShortDto> eventDtos = eventService.searchEventsWithStats(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
         log.info("Выполнен поиск событий через публичный API");

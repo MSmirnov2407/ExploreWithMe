@@ -1,6 +1,6 @@
 package ru.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,10 @@ import ru.practicum.dto.participationRequest.EventRequestStatusUpdateResult;
 import ru.practicum.dto.participationRequest.ParticipationRequestDto;
 import ru.practicum.dto.participationRequest.UpdateRequestState;
 import ru.practicum.dto.user.UserMapper;
-import ru.practicum.exception.*;
+import ru.practicum.exception.BadParameterException;
+import ru.practicum.exception.CreateConditionException;
+import ru.practicum.exception.DataConflictException;
+import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.model.*;
 import ru.practicum.repository.EventJpaRepository;
 
@@ -32,25 +35,14 @@ import java.util.stream.Collectors;
 import static java.time.temporal.ChronoUnit.HOURS;
 
 @Service
+@RequiredArgsConstructor
 public class EventService {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventJpaRepository eventJpaRepository;
-
     private final CategoryService categoryService;
     private final UserService userService;
     private final ParticipationService participationService;
     private final EntityManager entityManager;
-
-    @Autowired
-    public EventService(EventJpaRepository eventJpaRepository, CategoryService categoryService, UserService userService,
-                        ParticipationService participationService, EntityManager entityManager) {
-        this.eventJpaRepository = eventJpaRepository;
-        this.categoryService = categoryService;
-        this.userService = userService;
-        this.participationService = participationService;
-        this.entityManager = entityManager;
-    }
-
 
     /**
      * Создание нового события
@@ -59,7 +51,6 @@ public class EventService {
      * @return - EventFullDto
      */
     public EventFullDto createEvent(NewEventDto newEventDto, int userId) {
-        EventFullDto eventFullDto = new EventFullDto();
         /*проверки перед добавлением*/
         LocalDateTime newEventDateTime = LocalDateTime.parse(newEventDto.getEventDate(), TIME_FORMAT); //дата и время из DTO
         if (HOURS.between(LocalDateTime.now(), newEventDateTime) < 2) { //если до события менее 2 часов
@@ -72,8 +63,7 @@ public class EventService {
         Event event = EventMapper.toEvent(newEventDto, category, user); //преобразуем в event
         Event savedEvent = eventJpaRepository.save(event); //сохранение в репозитории
 
-        eventFullDto = EventMapper.toFullDto(savedEvent, 0); //преобразование в EventFullDto
-        return eventFullDto;
+        return EventMapper.toFullDto(savedEvent, 0); //преобразование в EventFullDto
     }
 
     /**
@@ -108,13 +98,7 @@ public class EventService {
      * @return - список DTO
      */
     public List<EventShortDto> getAllByUser(int userId, int from, int size) {
-        /*проверка параметров запроса*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (from < 0 || size < 1) { //проверка параметров запроса
-            throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
-        }
+
         PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
 
         /*получаем список событий и кол-во просмотров*/
@@ -137,14 +121,6 @@ public class EventService {
      * @return - список DTO
      */
     public EventFullDto getByUserAndId(int userId, int eventId) {
-        /*проверка параметров запроса*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (eventId < 0) {
-            throw new BadParameterException("Id события должен быть больше 0");
-        }
-
         /*получаем событие и кол-во его просмотров*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id пользователя
         if (event == null) { //если нет события, кидается исключение
@@ -162,16 +138,10 @@ public class EventService {
      * @return - DTO
      */
     public EventFullDto getEventById(int eventId) {
-        /*проверка параметров запроса*/
-        if (eventId < 0) {
-            throw new BadParameterException("Id события должен быть больше 0");
-        }
         /*получаем событие и кол-во его просмотров*/
-        Optional<Event> eventOptional = eventJpaRepository.findById(eventId); //событие по id
-        if (eventOptional.isEmpty()) { //если нет события, кидается исключение
-            throw new ElementNotFoundException("События с id=" + eventId + " не найдено");
-        }
-        Event event = eventOptional.get();
+        Event event = eventJpaRepository.findById(eventId)
+                .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //событие по id
+
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
     }
@@ -208,14 +178,6 @@ public class EventService {
      * @return - список DTO
      */
     public EventFullDto patchEvent(int userId, int eventId, UpdateEventUserRequest updateRequest) {
-        /*проверка параметров запроса*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (eventId < 0) {
-            throw new BadParameterException("Id соытия должен быть больше 0");
-        }
-
         /*получаем событие*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id пользователя
         if (event == null) { //если нет события, кидается исключение
@@ -282,9 +244,11 @@ public class EventService {
 
         eventJpaRepository.save(event); // сохраняем обновленное событие
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-        Optional<Event> eventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(eventOptional.get(), idViewsMap.getOrDefault(event.getId(), 0L));
+        Event updatedEvent = eventJpaRepository.findById(event.getId())
+                .orElseThrow(() -> new ElementNotFoundException("Событие с id=" + event.getId() + " не найден")); //берем из репозтория обновленное событие
+
+        return EventMapper.toFullDto(updatedEvent, idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
     /**
@@ -295,18 +259,9 @@ public class EventService {
      * @return - DTO обновленного события
      */
     public EventFullDto patchAdminEvent(int eventId, UpdateEventAdminRequest adminRequest) {
-        /*проверка параметров запроса*/
-        if (eventId < 0) {
-            throw new BadParameterException("Id события должен быть больше 0");
-        }
-
         /*получаем событие*/
-        Optional<Event> eventOptional = eventJpaRepository.findById(eventId); //полуаем событие по id
-        if (eventOptional.isEmpty()) { //если нет события, кидается исключение
-            throw new ElementNotFoundException("События с id=" + eventId + " не найдено");
-        }
-        Event event = eventOptional.get();
-
+        Event event = eventJpaRepository.findById(eventId)
+                .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //полуаем событие по id
 
         /*обновление полей события при наличии значений в запросе*/
         String annotation = adminRequest.getAnnotation();
@@ -380,9 +335,11 @@ public class EventService {
 
         eventJpaRepository.save(event); // сохраняем обновленное событие
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-        Optional<Event> updatedEventOptional = eventJpaRepository.findById(event.getId()); //берем из репозтория обновленное событие
 
-        return EventMapper.toFullDto(updatedEventOptional.get(), idViewsMap.getOrDefault(event.getId(), 0L));
+        Event updatedEvent = eventJpaRepository.findById(event.getId())
+                .orElseThrow(() -> new ElementNotFoundException("Событие с id=" + event.getId() + " не найден")); //берем из репозтория обновленное событие
+
+        return EventMapper.toFullDto(updatedEvent, idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
     /**
@@ -393,13 +350,6 @@ public class EventService {
      * @return - DTO информации о заявках
      */
     public List<ParticipationRequestDto> getParticipationInfo(int userId, int eventId) {
-        /*проверка параметров запроса*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (eventId < 0) {
-            throw new BadParameterException("Id соытия должен быть больше 0");
-        }
 
         /*получаем событие*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id инициатора
@@ -424,14 +374,6 @@ public class EventService {
      * @return - результат обновления
      */
     public EventRequestStatusUpdateResult updateStatus(int userId, int eventId, EventRequestStatusUpdateRequest updateRequest) {
-        /*проверка параметров запроса*/
-        if (userId < 0) {
-            throw new BadParameterException("Id пользователя должен быть больше 0");
-        }
-        if (eventId < 0) {
-            throw new BadParameterException("Id соытия должен быть больше 0");
-        }
-
         /*получаем событие*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id инициатора
         if (event == null) { //если нет события, кидается исключение
@@ -441,66 +383,17 @@ public class EventService {
         EventRequestStatusUpdateResult updateResult = new EventRequestStatusUpdateResult(); //объявление результата метода
 
         List<ParticipationRequestDto> requests = participationService.getALlRequestsEventId(eventId); //список запросов на участие в событии
-        int confirmedRequestsAmount = event.getConfirmedRequests(); // текущее кол-во подтвержденных запросов
         int limit = event.getParticipantLimit();//ограничение участников
-        boolean limitAchieved = false; // флаг достижения лимита по заявкам
 
         if (updateRequest.getStatus() == UpdateRequestState.REJECTED) { // если обновление подразумевает отклонение заявок
-            for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
-                ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
-                if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
-                    prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
-                    participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
-                    updateResult.getRejectedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
-                } else { //иначе исключение
-                    throw new CreateConditionException("Нельзя отклонить уже обработанную заявку id=" + id);
-                }
-            }
-            return updateResult;
+            return rejectRequests(event, requests, updateRequest); //отклоняем заявки и возвращаем результат
         } else { // если обновление подразумевает подтверджение заявок
             if ((limit == 0 || !event.isRequestModeration())) { //если предел участников = 0 или не требуется модерация заявок,
-                for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
-                    ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
-                    if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
-                        prDto.setStatus(RequestStatus.CONFIRMED.toString()); // подтверждаем
-                        confirmedRequestsAmount++; //увеличили счетчик подтвержденных заявок
-                        event.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
-                        eventJpaRepository.save(event); //сохранили в ремозитории информацию о событии
-                        participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
-                        updateResult.getConfirmedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
-                    } else { //иначе исключение
-                        throw new CreateConditionException("Нельзя подтвердить уже обработанную заявку id=" + id);
-                    }
-                }
-                return updateResult;
+                return confirmAllRequests(event, requests, updateRequest); //подтверждаем все заявки и возвращаем результат
             } else { //требуется учет заявок + обновление подразумевает подтверджение заявок
-                for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
-                    limitAchieved = confirmedRequestsAmount >= limit; //проверяем флаг достижения ограничения.
-                    ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
-                    if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
-                        if (limitAchieved) { //если превысили ограничение - все дальнейшие заявки отклоняются
-                            prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
-                            participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
-                            updateResult.getRejectedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
-                        } else { //если лимит не превышен - подтверждаем
-                            prDto.setStatus(RequestStatus.CONFIRMED.toString()); // подтверждаем
-                            confirmedRequestsAmount++; //увеличили счетчик подтвержденных заявок
-                            event.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
-                            eventJpaRepository.save(event); //сохранили в ремозитории информацию о событии
-                            participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
-                            updateResult.getConfirmedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
-                        }
-                    } else { //иначе (не PENDING) - исключение
-                        throw new CreateConditionException("Нельзя подтвердить уже обработанную заявку id=" + id);
-                    }
-                }
+                return confirmRequests(event, requests, updateRequest); //подтверждаем/отклоняем заявки и возвращаем результат
             }
         }
-
-        if (limitAchieved) {
-            throw new CreateConditionException("Превышен лимит на кол-во участников. Лимит = " + limit + ", кол-во подтвержденных заявок =" + confirmedRequestsAmount);
-        }
-        return updateResult; //вернули итоговый результат
     }
 
     /**
@@ -517,10 +410,6 @@ public class EventService {
      * @return - Список DTO
      */
     public List<EventFullDto> searchEvents(List<Integer> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
-        /*проверка параметров запроса*/
-        if (from < 0 || size < 1) { //проверка параметров запроса
-            throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
-        }
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
         CriteriaQuery<Event> criteriaQuery = criteriaBuilder.createQuery(Event.class); //создаем объект CriteriaQuery с помощью CriteriaBuilder
@@ -600,10 +489,6 @@ public class EventService {
      * @return - Список DTO
      */
     public List<EventShortDto> searchEventsWithStats(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, int from, int size, HttpServletRequest request) {
-        /*проверка параметров запроса*/
-        if (from < 0 || size < 1) { //проверка параметров запроса
-            throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
-        }
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
         CriteriaQuery<Event> criteriaQuery = criteriaBuilder.createQuery(Event.class); //создаем объект CriteriaQuery с помощью CriteriaBuilder
@@ -742,5 +627,94 @@ public class EventService {
         //события выгружаются сразу с инициаторами по EAGER
         List<Event> eventList = eventJpaRepository.findEventsWIthUsersByIdSet(eventIds); //получение списка событий из репозитория
         return new HashSet<>(eventList);
+    }
+
+    /**
+     * Отклонение заявок на участие в событии
+     *
+     * @param event         - событие, к которому относятся заявки на участие
+     * @param requests      - список DTO заявок на участие
+     * @param updateRequest - запрос на изменение статуса запросов на участие
+     * @return - результат подтверждения/отклонения заявок на участие в событии
+     */
+    private EventRequestStatusUpdateResult rejectRequests(Event event, List<ParticipationRequestDto> requests, EventRequestStatusUpdateRequest updateRequest) {
+        EventRequestStatusUpdateResult updateResult = new EventRequestStatusUpdateResult(); //объявление результата метода
+        for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
+            ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
+            if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
+                prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
+                participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
+                updateResult.getRejectedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
+            } else { //иначе исключение
+                throw new CreateConditionException("Нельзя отклонить уже обработанную заявку id=" + id);
+            }
+        }
+        return updateResult;
+    }
+
+    /**
+     * Подтверждение заявок на участие в событии, БЕЗ учета допустимого количества участников
+     *
+     * @param event         - событие, к которому относятся заявки на участие
+     * @param requests      - список DTO заявок на участие
+     * @param updateRequest - запрос на изменение статуса запросов на участие
+     * @return - результат подтверждения/отклонения заявок на участие в событии
+     */
+    private EventRequestStatusUpdateResult confirmAllRequests(Event event, List<ParticipationRequestDto> requests, EventRequestStatusUpdateRequest updateRequest) {
+        int confirmedRequestsAmount = event.getConfirmedRequests(); // текущее кол-во подтвержденных запросов
+        EventRequestStatusUpdateResult updateResult = new EventRequestStatusUpdateResult(); //объявление результата метода
+        for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
+            ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
+            if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
+                prDto.setStatus(RequestStatus.CONFIRMED.toString()); // подтверждаем
+                confirmedRequestsAmount++; //увеличили счетчик подтвержденных заявок
+                event.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
+                eventJpaRepository.save(event); //сохранили в ремозитории информацию о событии
+                participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
+                updateResult.getConfirmedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
+            } else { //иначе исключение
+                throw new CreateConditionException("Нельзя подтвердить уже обработанную заявку id=" + id);
+            }
+        }
+        return updateResult;
+    }
+
+    /**
+     * Подтверждение заявок на участие в событии, C учетом допустимого количества участников
+     *
+     * @param event         - событие, к которому относятся заявки на участие
+     * @param requests      - список DTO заявок на участие
+     * @param updateRequest - запрос на изменение статуса запросов на участие
+     * @return - результат подтверждения/отклонения заявок на участие в событии
+     */
+    private EventRequestStatusUpdateResult confirmRequests(Event event, List<ParticipationRequestDto> requests, EventRequestStatusUpdateRequest updateRequest) {
+        int confirmedRequestsAmount = event.getConfirmedRequests(); // текущее кол-во подтвержденных запросов
+        int limit = event.getParticipantLimit();//ограничение участников
+        boolean limitAchieved = false; // флаг достижения лимита по заявкам
+        EventRequestStatusUpdateResult updateResult = new EventRequestStatusUpdateResult(); //объявление результата метода
+        for (int id : updateRequest.getRequestIds()) { //для каджого Id из запроса на обновление
+            limitAchieved = confirmedRequestsAmount >= limit; //проверяем флаг достижения ограничения.
+            ParticipationRequestDto prDto = requests.stream().filter(pr -> pr.getId() == id).findFirst().orElseThrow(); //берем из списка заявок одну с Id из списка в запросе на обновление
+            if (prDto.getStatus().equals(RequestStatus.PENDING.name())) { //если заявка на рассмотрении
+                if (limitAchieved) { //если превысили ограничение - все дальнейшие заявки отклоняются
+                    prDto.setStatus(RequestStatus.REJECTED.toString()); // отклоняем
+                    participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
+                    updateResult.getRejectedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
+                } else { //если лимит не превышен - подтверждаем
+                    prDto.setStatus(RequestStatus.CONFIRMED.toString()); // подтверждаем
+                    confirmedRequestsAmount++; //увеличили счетчик подтвержденных заявок
+                    event.setConfirmedRequests(confirmedRequestsAmount); //сохранили значение в евенте
+                    eventJpaRepository.save(event); //сохранили в ремозитории информацию о событии
+                    participationService.update(prDto, event); //сохранили в БД обновленную информациб о запросе
+                    updateResult.getConfirmedRequests().add(prDto); //сложили обработанную заявку в ответ на запрос на обновление
+                }
+            } else { //иначе (не PENDING) - исключение
+                throw new CreateConditionException("Нельзя подтвердить уже обработанную заявку id=" + id);
+            }
+        }
+        if (limitAchieved) {
+            throw new CreateConditionException("Превышен лимит на кол-во участников. Лимит = " + limit + ", кол-во подтвержденных заявок =" + confirmedRequestsAmount);
+        }
+        return updateResult;
     }
 }

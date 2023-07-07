@@ -1,6 +1,6 @@
 package ru.practicum.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -15,28 +15,23 @@ import ru.practicum.dto.user.UserMapper;
 import ru.practicum.dto.user.UserShortDto;
 import ru.practicum.exception.BadParameterException;
 import ru.practicum.exception.ElementNotFoundException;
-import ru.practicum.exception.PaginationParametersException;
 import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 import ru.practicum.repository.CompilationJpaRepository;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CompilationService {
     private final CompilationJpaRepository compilationJpaRepository;
     private final EventService eventService;
     private final UserService userService;
-
-    @Autowired
-    public CompilationService(CompilationJpaRepository compilationJpaRepository,
-                              EventService eventService, UserService userService) {
-        this.compilationJpaRepository = compilationJpaRepository;
-        this.eventService = eventService;
-        this.userService = userService;
-    }
 
     /**
      * Получение подборок событий из репозитория
@@ -47,9 +42,6 @@ public class CompilationService {
      * @return - список DTO подборок
      */
     public List<CompilationDto> getAllComps(boolean pinned, int from, int size) {
-        if (from < 0 || size < 1) { //проверка параметров запроса
-            throw new PaginationParametersException("Параметры постраничной выбрки должны быть from >=0, size >0");
-        }
         PageRequest page = PageRequest.of(from / size, size, Sort.by("id").ascending()); //параметризируем переменную для пагинации
 
         List<Compilation> compilations = compilationJpaRepository.findByPinned(pinned, page); //берем из репозитория нужные подборки
@@ -70,13 +62,10 @@ public class CompilationService {
         if (compId <= 0) {
             throw new BadParameterException("Id не может быть меньше 1");
         }
-        /*запрос подборки из репозитория*/
-        Optional<Compilation> compilationOptional = compilationJpaRepository.findById(compId);
-        /*проверка наличия искомого элемента*/
-        if (compilationOptional.isEmpty()) {
-            throw new ElementNotFoundException("Элемент с id=" + compId + " не найден");
-        }
-        return CompilationMapper.toDto(compilationOptional.get());
+
+        Compilation compilation = compilationJpaRepository.findById(compId)
+                .orElseThrow(() -> new ElementNotFoundException("Элемент с id=" + compId + " не найден"));
+        return CompilationMapper.toDto(compilation);
     }
 
     /**
@@ -126,10 +115,9 @@ public class CompilationService {
      * @param compId - id подборки
      */
     public void deleteById(int compId) {
-        Optional<Compilation> compilationOptional = compilationJpaRepository.findById(compId);
-        if (compilationOptional.isEmpty()) {
-            throw new ElementNotFoundException("Подборка с id= " + compId + " не найден");
-        }
+        compilationJpaRepository.findById(compId)
+                .orElseThrow(() -> new ElementNotFoundException("Подборка с id= " + compId + " не найден")); //проверка существаования подборки
+
         compilationJpaRepository.deleteById(compId);
     }
 
@@ -142,11 +130,8 @@ public class CompilationService {
      */
     public CompilationDto update(int compId, UpdateCompilationRequest updateRequest) {
 
-        Optional<Compilation> compilationOptional = compilationJpaRepository.findById(compId);
-        if (compilationOptional.isEmpty()) {
-            throw new ElementNotFoundException("Подборка с id=" + compId + " не найдена");
-        }
-        Compilation compilation = compilationOptional.get(); //Обновляемая подборка
+        Compilation compilation = compilationJpaRepository.findById(compId)
+                .orElseThrow(() -> new ElementNotFoundException("Подборка с id=" + compId + " не найдена")); //Обновляемая подборка
 
         Set<Integer> eventIds = updateRequest.getEvents();
         Set<Event> eventsSet; //сет событий полученный по сету id
