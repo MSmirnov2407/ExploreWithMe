@@ -46,8 +46,8 @@ public class CategoryService {
      * @param catId - id категории
      */
     public void deleteById(int catId) {
-        categoryJpaRepository.findById(catId).
-                orElseThrow(() -> new ElementNotFoundException("Категория с id= " + catId + " не найдена")); //проверка существования категории
+        categoryJpaRepository.findById(catId)
+                .orElseThrow(() -> new ElementNotFoundException("Категория с id= " + catId + " не найдена")); //проверка существования категории
         try {
             categoryJpaRepository.deleteById(catId);
         } catch (RuntimeException ex) {
