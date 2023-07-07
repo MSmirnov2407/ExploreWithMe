@@ -380,8 +380,6 @@ public class EventService {
             throw new ElementNotFoundException("События с id=" + eventId + " и initiatorId=" + userId + " не найдено");
         }
 
-        EventRequestStatusUpdateResult updateResult = new EventRequestStatusUpdateResult(); //объявление результата метода
-
         List<ParticipationRequestDto> requests = participationService.getALlRequestsEventId(eventId); //список запросов на участие в событии
         int limit = event.getParticipantLimit();//ограничение участников
 
