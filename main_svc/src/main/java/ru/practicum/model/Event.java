@@ -64,12 +64,6 @@ public class Event {
     @Column(name = "title")
     private String title; //Заголовок
 
-//todo delete
-
-//    @ManyToMany(mappedBy = "events")
-//    //связанное поле в сущности Compilations. Там же описана и связка через пром.таблицу
-//    private Set<Compilation> compilations;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
