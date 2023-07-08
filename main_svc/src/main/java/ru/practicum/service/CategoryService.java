@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.categoty.NewCategoryDto;
@@ -61,12 +62,13 @@ public class CategoryService {
      * @param categoryDto - DTO с обновляемыми данным
      * @return - обновленный DTO
      */
+    @Transactional
     public CategoryDto updateCategory(int catId, CategoryDto categoryDto) {
         String name = categoryDto.getName();
 
         Category category = categoryJpaRepository.findById(catId)
                 .orElseThrow(() -> new ElementNotFoundException("категории с id=" + catId + " не существует")); //запросили категорию по id
-        if (category.getName().equals(name)) { //если имя не изменилось то возвращаем данные без обращения к БД, т.к. других полей нет
+        if (category.getName().equals(name)) { // если имя не изменилось, то возвращаем данные без обращения к БД, т.к. других полей нет
             return CategoryMapper.toDto(category);
         }
         if (categoryJpaRepository.findByName(name) != null) { //если имя не совпало, то проверяем, пересекается ли новое имя с другими

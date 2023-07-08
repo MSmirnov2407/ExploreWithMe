@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
 import ru.practicum.dto.user.UserMapper;
@@ -28,6 +29,7 @@ public class UserService {
      * @param newUserRequest - DTO NewUserRequest с данными о пользователе
      * @return - в случае успешного сохранения возвращается UserDto
      */
+    @Transactional
     public UserDto createUser(NewUserRequest newUserRequest) {
         String name = newUserRequest.getName();
         String newEmail = newUserRequest.getEmail();

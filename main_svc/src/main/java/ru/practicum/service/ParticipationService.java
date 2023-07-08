@@ -2,6 +2,7 @@ package ru.practicum.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventMapper;
 import ru.practicum.dto.participationRequest.ParticipationMapper;
@@ -18,6 +19,7 @@ import ru.practicum.repository.ParticipationJpaRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +37,7 @@ public class ParticipationService {
      * @param eventFullDto - DTO события
      * @return - DTO запроса
      */
+    @Transactional
     public ParticipationRequestDto create(int userId, EventFullDto eventFullDto) {
         ParticipationRequest newPartRequest = new ParticipationRequest();
         if (eventFullDto == null) {
@@ -91,7 +94,7 @@ public class ParticipationService {
      * @param eventId - id События
      * @return - список DTO заявок на участие
      */
-    public List<ParticipationRequestDto> getALlRequestsEventId(int eventId) {
+    public List<ParticipationRequestDto> getAllRequestsEventId(int eventId) {
         /*проверка параметров запроса*/
         if (eventId < 0) {
             throw new BadParameterException("Id собтия должен быть больше 0");
@@ -113,10 +116,41 @@ public class ParticipationService {
      * @param prDto - DTO запроса
      * @param event - событие
      */
+    @Transactional
     public void update(ParticipationRequestDto prDto, Event event) {
         User user = UserMapper.toUser(userService.getUserById(prDto.getRequester())); //пользователь запрашивающий участие
         participationJpaRepository.save(ParticipationMapper.toPr(prDto, event, user)); //сохраняем обновленную информацию в БД
     }
+
+    /**
+     * Обновление информации о нескольких запросах в репозитории
+     *
+     * @param prDtoList - список DTO запросов, которые надо обновить
+     * @param event     - событие
+     */
+    @Transactional
+    public void updateAll(List<ParticipationRequestDto> prDtoList, Event event) {
+        /*подготовка данных для массового преобразоывания списка ParticipationRequestDto в ParticipationRequest*/
+        /*Собираем пользователей в мапу <userId, User>*/
+        List<Integer> userIds = prDtoList.stream()
+                .map(ParticipationRequestDto::getRequester)
+                .collect(Collectors.toList()); //список id пользователей - авторов запросов на участие
+        Map<Integer, User> users = userService.getAllUsers(userIds).stream()
+                .map(UserMapper::toUser)
+                .collect(Collectors.toMap(User::getId, u -> u)); //мапа <userId, User> пользователей - авторов запросов на участие
+        /*делаем две мапы, которе требуются для маппинга из ParticipationRequestDto в ParticipationRequest*/
+        Map<Integer, ParticipationRequestDto> prDtoMap = prDtoList.stream()
+                .collect(Collectors.toMap(ParticipationRequestDto::getId, e -> e)); //мапа <id запроса,сам запрос на участие>
+        Map<Integer, User> requestUserMap = prDtoList.stream()
+                .collect(Collectors.toMap(ParticipationRequestDto::getId, pr -> users.get(pr.getRequester()))); //мапа <id запроса, User>
+
+        List<ParticipationRequest> prList = prDtoList.stream()
+                .map(pr -> ParticipationMapper.toPr(pr, event, requestUserMap.get(pr.getId())))
+                .collect(Collectors.toList()); //преобразовали список DTO в список непосредственно запросов на участие.
+
+        participationJpaRepository.saveAll(prList); //сохраняем в БД обновленную информацию обо всех запросах на участие
+    }
+
 
     /**
      * Получение информации о заявках на уастие текущего пользователя в событиях других пользователей
@@ -124,6 +158,7 @@ public class ParticipationService {
      * @param userId - id пользователя
      * @return - список заявкок
      */
+    @Transactional
     public List<ParticipationRequestDto> getRequestsByUser(int userId) {
 
         UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id
@@ -147,6 +182,7 @@ public class ParticipationService {
      * @param userId    - Id пользвателя
      * @param requestId - id заявки на учстие
      */
+    @Transactional
     public ParticipationRequestDto patchRequestCancel(int userId, int requestId) {
 
         UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id

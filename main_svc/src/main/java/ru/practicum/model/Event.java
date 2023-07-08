@@ -6,7 +6,6 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Событие (сущность)
@@ -65,9 +64,11 @@ public class Event {
     @Column(name = "title")
     private String title; //Заголовок
 
-    @ManyToMany(mappedBy = "events")
-    //связанное поле в сущности Compilations. Там же описана и связка через пром.таблицу
-    private Set<Compilation> compilations;
+//todo delete
+
+//    @ManyToMany(mappedBy = "events")
+//    //связанное поле в сущности Compilations. Там же описана и связка через пром.таблицу
+//    private Set<Compilation> compilations;
 
     @Override
     public boolean equals(Object o) {

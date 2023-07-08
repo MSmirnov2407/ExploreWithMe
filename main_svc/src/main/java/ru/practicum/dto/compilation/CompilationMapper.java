@@ -31,7 +31,9 @@ public class CompilationMapper {
         if (events == null || events.size() == 0) {
             return compilationDto;
         }
-        Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(events.stream().map(Event::getId).collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+        Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
         /*в поле events создаваемого CompilationDto складываем соответствующий set<EventShortDto>*/
         compilationDto.setEvents(compilation.getEvents().stream()
                 .map(e -> EventMapper.toShortDto(e, idViewsMap.get(e.getId())))

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.CompilationMapper;
 import ru.practicum.dto.compilation.NewCompilationDto;
@@ -74,6 +75,7 @@ public class CompilationService {
      * @param newCompilationDto - DTO подборки
      * @return - Dto сохраненной подборки
      */
+    @Transactional
     public CompilationDto create(NewCompilationDto newCompilationDto) {
         Set<Integer> newCompilationEventIds = newCompilationDto.getEvents();
         Set<Event> eventSet;
@@ -86,7 +88,7 @@ public class CompilationService {
             List<UserDto> usersDto = userService.getAllUsers(userIds); //получили список UserDto
             List<User> users = usersDto.stream()
                     .map(UserMapper::toUser)
-                    .collect(Collectors.toList()); //преоразовали в список User
+                    .collect(Collectors.toList()); //преобразовали в список User
 
             Map<Integer, User> eventInitiatorMap = eventDtoSet.stream()
                     .collect(Collectors.toMap(
@@ -128,6 +130,7 @@ public class CompilationService {
      * @param compId        - id категории
      * @return - DTO обновленной категории
      */
+    @Transactional
     public CompilationDto update(int compId, UpdateCompilationRequest updateRequest) {
 
         Compilation compilation = compilationJpaRepository.findById(compId)

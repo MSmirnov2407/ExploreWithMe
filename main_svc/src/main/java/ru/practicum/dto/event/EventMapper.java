@@ -3,13 +3,11 @@ package ru.practicum.dto.event;
 import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.model.Category;
-import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 
 /**
  * Класс, содержащий статические методоы для преобразования объекта Event в его DTO и обратно
@@ -30,13 +28,11 @@ public class EventMapper {
         event.setInitiator(user);
         event.setLocation(newEventDto.getLocation());
 
-
         event.setPaid(newEventDto.isPaid());
         event.setParticipantLimit(newEventDto.getParticipantLimit());
         event.setPublishedOn(LocalDateTime.now());
         event.setRequestModeration(newEventDto.isRequestModeration());
         event.setTitle(newEventDto.getTitle());
-        event.setCompilations(new HashSet<Compilation>());
 
         return event;
     }
@@ -61,7 +57,6 @@ public class EventMapper {
         event.setRequestModeration(eventFullDto.isRequestModeration());
         event.setState(eventFullDto.getState());
         event.setTitle(eventFullDto.getTitle());
-        event.setCompilations(new HashSet<Compilation>());
 
         return event;
     }
