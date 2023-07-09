@@ -67,8 +67,6 @@ public class StatsJpaRepositoryTest {
         statsJpaRepository.save(hit3);
         statsJpaRepository.save(hit4);
         statsJpaRepository.save(hit5);
-
-
     }
 
     @AfterEach

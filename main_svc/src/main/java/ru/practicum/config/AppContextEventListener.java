@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Класс для вывода настрек из application.properites
+ * Класс для вывода настрек из application.properties
  */
 @Slf4j
 @Component

@@ -21,6 +21,7 @@ public class StatsService {
 
     private final StatsJpaRepository statsJpaRepository; //репозиторий для хранения обращений к эндпоинтам
 
+
     @Autowired
     public StatsService(StatsJpaRepository statsJpaRepository) {
         this.statsJpaRepository = statsJpaRepository;
@@ -61,8 +62,14 @@ public class StatsService {
         LocalDateTime start = LocalDateTime.parse(startDecoded, TIME_FORMAT);
         LocalDateTime end = LocalDateTime.parse(endDecoded, TIME_FORMAT);
 
-        /*в зависимости от параметров запроса запрашиваем нужные данные*/
+        //проверка параметров
+        if (start.isAfter(end)) {
+            throw new RuntimeException("время начала не может быть поздне, чем  время конца выборки");
+        }
+
         String[] uris = requestParamDto.getUris();
+
+        /*в зависимости от параметров запроса запрашиваем нужные данные*/
         if (requestParamDto.isUnique()) {
             if (uris == null) {
                 return statsJpaRepository.getStatsUnique(start, end); //получение статистики уникальные ip БЕЗ фильтра URI
@@ -73,7 +80,7 @@ public class StatsService {
             if (uris == null) {
                 return statsJpaRepository.getStatsNotUnique(start, end); //получение статистики НЕ уникальные БЕЗ фильтра URI
             } else {
-                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики НЕ уникальные C фильтром URI
+                return statsJpaRepository.getStatsNotUniqueWithUris(start, end, uris); //получение статистики уникальные ip C фильтром URI
             }
         }
     }

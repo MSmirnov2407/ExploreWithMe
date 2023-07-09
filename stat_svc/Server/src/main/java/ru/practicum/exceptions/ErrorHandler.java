@@ -12,6 +12,6 @@ public class ErrorHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> unsupportedEncodingHandle(RuntimeException e) {
         log.debug("RuntimeException: {}", e.getMessage());
-        return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST); //400
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); //400
     }
 }

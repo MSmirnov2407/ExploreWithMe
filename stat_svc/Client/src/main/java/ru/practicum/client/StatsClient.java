@@ -14,25 +14,25 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class StatsClient {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private final RestTemplate rest; //HTTP-клиент
+    private static final RestTemplate rest; //HTTP-клиент
 
-    public StatsClient() {
+    static {
         RestTemplateBuilder builder = new RestTemplateBuilder();
-        String serverUrl = "http://localhost:9090";
+//        String serverUrl = "http://localhost:9090";
+        String serverUrl = "http://ewm-stat-server:9090";
 
-        this.rest = builder
+        rest = builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .build();
     }
 
-    public List<EndpointStats> getStats(LocalDateTime startTime, LocalDateTime endTime, @Nullable String[] uris, @Nullable Boolean unique) {
+    public static List<EndpointStats> getStats(LocalDateTime startTime, LocalDateTime endTime, @Nullable String[] uris, @Nullable Boolean unique) {
         String startString = startTime.format(TIME_FORMAT);
         String endString = endTime.format(TIME_FORMAT);
         String startEncoded = URLEncoder.encode(startString, StandardCharsets.UTF_8);
@@ -54,13 +54,48 @@ public class StatsClient {
         return makeAndSendGetStatsRequest(HttpMethod.GET, sb.toString(), parameters, null);
     }
 
-    public ResponseEntity<String> postHit(EndpointHitDto hit) {
+    public static ResponseEntity<String> postHit(EndpointHitDto hit) {
         ResponseEntity<String> responseEntity = makeAndSendPostHitRequest(HttpMethod.POST, "/hit", null, hit);
         return responseEntity;
     }
 
+    /**
+     * Получение данных о просмторах id
+     *
+     * @param eventsId - списоок id сбытий
+     * @return - <id события, количество просмотров>
+     */
+    public static Map<Integer, Long> getMapIdViews(Collection<Integer> eventsId) {
+        if (eventsId == null || eventsId.isEmpty()) {
+            return new HashMap<>();
+        }
+        /*составляем список URI событий из подборки*/
+        List<String> eventUris = eventsId.stream()
+                .map(i -> "/events/" + i)
+                .collect(Collectors.toList()); //преобразовали список событий в список URI
 
-    private <T> List<EndpointStats> makeAndSendGetStatsRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
+        String[] uriArray = new String[eventUris.size()]; //создали массив строк
+        eventUris.toArray(uriArray); //заполнили массив строками из списка URI
+
+        /*запрашиваем у клиента статистики данные по нужным URI*/
+        List<EndpointStats> endpointStatsList = getStats(LocalDateTime.of(1970, 01, 01, 01, 01), LocalDateTime.now(), uriArray, true);
+
+        if (endpointStatsList == null || endpointStatsList.isEmpty()) { //если нет статистики по эндпоинтам, возвращаем мапу с нулевыми просмотрами
+            return eventsId.stream()
+                    .collect(Collectors.toMap(e -> e, e -> 0L));
+        }
+        /*превращаем список EndpointStats в мапу <id события, кол-во просмотров>*/
+        Map<Integer, Long> idViewsMap = endpointStatsList.stream()
+                .collect(Collectors.toMap(e -> {
+                            String[] splitUri = e.getUri().split("/"); //делим URI /events/1
+                            Arrays.asList(splitUri).forEach(s -> System.out.println("idViewsMap + elements+///+ " + s));
+                            return Integer.valueOf(splitUri[splitUri.length - 1]); //берем последний элемент разбитой строки - это id
+                        },
+                        EndpointStats::getHits));
+        return idViewsMap;
+    }
+
+    private static <T> List<EndpointStats> makeAndSendGetStatsRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
         ResponseEntity<List<EndpointStats>> ewmServerResponse;
@@ -78,7 +113,7 @@ public class StatsClient {
         return ewmServerResponse.getBody();
     }
 
-    private <T> ResponseEntity<String> makeAndSendPostHitRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
+    private static <T> ResponseEntity<String> makeAndSendPostHitRequest(HttpMethod method, String path, @Nullable Map<String, Object> parameters, @Nullable T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
         ResponseEntity<String> ewmServerResponse;
@@ -94,7 +129,7 @@ public class StatsClient {
         return ewmServerResponse;
     }
 
-    private HttpHeaders defaultHeaders() {
+    private static HttpHeaders defaultHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
