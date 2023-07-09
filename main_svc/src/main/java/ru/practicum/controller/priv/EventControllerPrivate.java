@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.dto.event.NewEventDto;
@@ -119,4 +120,54 @@ public class EventControllerPrivate {
         return updateStatusResult;
     }
 
+    /**
+     * Создание комментария к событию
+     * @param userId - id автора комментария
+     * @param eventId - id комментируемого события
+     * @param newComment - DTO комментария
+     * @return - DTO созданного комментария
+     */
+    @PostMapping("/{eventId}/comment")
+    @ResponseStatus(HttpStatus.CREATED) //201
+    public CommentDto postComment(@PathVariable(name = "userId") @Positive int userId,
+                                  @PathVariable(name = "eventId") @Positive int eventId,
+                                  @Valid @RequestBody CommentDto newComment){
+        CommentDto commentDto = eventService.createComment(userId,eventId,newComment);
+        log.info("Создан комментарий id={} от пользователя userId={} к событию eventId={}", commentDto.getId(),userId,eventId);
+        return commentDto;
+    }
+
+    /**
+     * Изменение комментария
+     * @param userId - автор комментария
+     * @param eventId - id события
+     * @param commentId - id комментария
+     * @param updatedComment - DTO Комментария с обновленными даннами
+     * @return - DTO Обновленного комментария
+     */
+    @PatchMapping("/{eventId}/comment/{commentId}")
+    @ResponseStatus(HttpStatus.OK) //200
+    public CommentDto updateComment(@PathVariable(name = "userId") @Positive int userId,
+                                   @PathVariable(name = "eventId") @Positive int eventId,
+                                   @PathVariable(name = "commentId") @Positive int commentId,
+                                   @Valid @RequestBody CommentDto updatedComment) {
+        CommentDto commentDto = eventService.updateComment(userId,eventId,commentId,updatedComment);
+        log.info("Обновлен комментарий id={} от пользователя userId={} к событию eventId={}", commentDto.getId(),userId,eventId);
+        return commentDto;
+    }
+
+    /**
+     * Удаление комментария к событию
+     * @param userId - автор комментария
+     * @param eventId - id события
+     * @param commentId - id комментария
+     */
+    @DeleteMapping("/{eventId}/comment/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT) //204
+    public void deleteComment(@PathVariable(name = "userId") @Positive int userId,
+                                 @PathVariable(name = "eventId") @Positive int eventId,
+                                 @PathVariable(name = "commentId") @Positive int commentId) {
+        eventService.deleteComment(userId,eventId,commentId);
+        log.info("Удален комментарий id={} от пользователя userId={} к событию eventId={}", commentId,userId,eventId);
+    }
 }
