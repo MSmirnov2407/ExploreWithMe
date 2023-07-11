@@ -5,7 +5,6 @@ import lombok.Setter;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.user.UserShortDto;
-import ru.practicum.model.Comment;
 import ru.practicum.model.EventState;
 import ru.practicum.model.Location;
 

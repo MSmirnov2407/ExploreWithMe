@@ -173,6 +173,7 @@ public class EventService {
                 .collect(Collectors.toList()); //преобразовали в DTO
         return EventMapper.toFullDtoWithComments(event, idViewsMap.getOrDefault(event.getId(), 0L),commentDtos);
     }
+
     /**
      * Получение события по id с сохранением факта запроса события в сервисе статистики
      *

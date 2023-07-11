@@ -4,7 +4,6 @@ import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.model.Category;
-import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
