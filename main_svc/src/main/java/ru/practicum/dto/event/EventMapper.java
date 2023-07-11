@@ -4,6 +4,7 @@ import ru.practicum.dto.categoty.CategoryMapper;
 import ru.practicum.dto.comment.CommentDto;
 import ru.practicum.dto.user.UserMapper;
 import ru.practicum.model.Category;
+import ru.practicum.model.Comment;
 import ru.practicum.model.Event;
 import ru.practicum.model.User;
 
@@ -124,7 +125,7 @@ public class EventMapper {
      * @param comments - комментарии к событию
      * @return - DTO события
      */
-    public static EventFullDtoWithComments toFullDto(Event event, long views, List<CommentDto> comments) {
+    public static EventFullDtoWithComments toFullDtoWithComments(Event event, long views, List<CommentDto> comments) {
         EventFullDtoWithComments eventFullDto = new EventFullDtoWithComments();
 
         /*заполняем поля DTO значениями из объекта*/

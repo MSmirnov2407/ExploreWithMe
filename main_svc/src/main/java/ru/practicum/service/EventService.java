@@ -123,17 +123,20 @@ public class EventService {
      *
      * @param userId  - id пользователя
      * @param eventId - id События
-     * @return - список DTO
+     * @return - список DTO событий с комментариями
      */
-    public EventFullDto getByUserAndId(int userId, int eventId) {
+    public EventFullDtoWithComments getByUserAndId(int userId, int eventId) {
         /*получаем событие и кол-во его просмотров*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id пользователя
         if (event == null) { //если нет события, кидается исключение
             throw new ElementNotFoundException("События с id=" + eventId + " и initiatorId=" + userId + " не найдено");
         }
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-
-        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
+        List<Comment> comments = commentJpaRepository.findAllByEnventId(eventId); //запросили все комментарии по событию
+        List<CommentDto> commentDtos = comments.stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList()); //преобразовали в DTO
+        return EventMapper.toFullDtoWithComments(event, idViewsMap.getOrDefault(event.getId(), 0L),commentDtos);
     }
 
     /**
@@ -148,17 +151,36 @@ public class EventService {
                 .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //событие по id
 
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+
         return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
     }
 
+    /**
+     * Получение события по id, c вложенным списком комментариев к нему
+     *
+     * @param eventId - id события
+     * @return - DTO
+     */
+    public EventFullDtoWithComments getEventWithCommentsById(int eventId) {
+        /*получаем событие и кол-во его просмотров*/
+        Event event = eventJpaRepository.findById(eventId)
+                .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //событие по id
+
+        Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+        List<Comment> comments = commentJpaRepository.findAllByEnventId(eventId); //запросили все комментарии по событию
+        List<CommentDto> commentDtos = comments.stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList()); //преобразовали в DTO
+        return EventMapper.toFullDtoWithComments(event, idViewsMap.getOrDefault(event.getId(), 0L),commentDtos);
+    }
     /**
      * Получение события по id с сохранением факта запроса события в сервисе статистики
      *
      * @param eventId - id события
      * @return - DTO
      */
-    public EventFullDto getEventByIdWithStats(int eventId, HttpServletRequest request) {
-        EventFullDto eventDto = this.getEventById(eventId); //получили запрашиваемое событие в виде DTO
+    public EventFullDtoWithComments getEventByIdWithStats(int eventId, HttpServletRequest request) {
+        EventFullDtoWithComments eventDto = this.getEventWithCommentsById(eventId); //получили запрашиваемое событие в виде DTO
         if (eventDto.getState() != EventState.PUBLISHED) {
             throw new ElementNotFoundException("Событие с id=" + eventId + " не опубликовано");
         }
@@ -727,52 +749,51 @@ public class EventService {
     @Transactional
     public CommentDto createComment(int userId, int eventId, CommentDto commentDto) {
         User commentAuthor = UserMapper.toUser(userService.getUserById(userId)); //взяли из репозитория пользователя по id
-
-        EventFullDto eventFullDto = getEventById(eventId); //получили DTO события по его id
-        User eventCreator = UserMapper.toUser(userService.getUserById(eventFullDto.getInitiator().getId())); //взяли из репозитория инициатора события по id
-        Event event = EventMapper.toEvent(eventFullDto, eventCreator); //преобразовали в событие
-
+        Event event = eventJpaRepository.findById(eventId)
+                .orElseThrow(() -> new ElementNotFoundException("Событие с id=" + eventId + " не найдено")); //взяли событие по id
         Comment comment = CommentMapper.toComment(commentDto, commentAuthor, event); //преобразовали все это в объект комментария
-        Comment savedComment =  commentJpaRepository.save(comment); //сохранили в репозиторий
+        Comment savedComment = commentJpaRepository.save(comment); //сохранили в репозиторий
 
         return CommentMapper.toDto(savedComment);
     }
 
     /**
      * Изменение комментария
-     * @param userId - автор комментария
-     * @param eventId - id события
-     * @param commentId - id комментария
+     *
+     * @param userId         - автор комментария
+     * @param eventId        - id события
+     * @param commentId      - id комментария
      * @param updatedComment - DTO Комментария с обновленными даннами
      * @return - DTO Обновленного комментария
      */
     @Transactional
-    public CommentDto updateComment(int userId, int eventId, int commentId , CommentDto updatedComment) {
+    public CommentDto updateComment(int userId, int eventId, int commentId, CommentDto updatedComment) {
         Comment comment = commentJpaRepository.findById(commentId)
-                .orElseThrow(()-> new ElementNotFoundException("Комментарий с Id="+commentId+" не найден")); //взяли комментарий из репозитория
+                .orElseThrow(() -> new ElementNotFoundException("Комментарий с Id=" + commentId + " не найден")); //взяли комментарий из репозитория
 
-        if(comment.getAuthor().getId() != userId || comment.getEvent().getId() != eventId){
+        if (comment.getAuthor().getId() != userId || comment.getEvent().getId() != eventId) {
             throw new BadParameterException("Данные в запросе(userId,eventId) не соответствуют данным в комментарии");
         }
         comment.setText(updatedComment.getText()); //сохранили в комментарии обновленный текст
-        Comment savedComment =  commentJpaRepository.save(comment); //сохранили в репозитории обновленный комментарий
+        Comment savedComment = commentJpaRepository.save(comment); //сохранили в репозитории обновленный комментарий
         return CommentMapper.toDto(savedComment);
     }
 
     /**
      * Удаление комментария
-     * @param userId - автор комментария
-     * @param eventId - id события
+     *
+     * @param userId    - автор комментария
+     * @param eventId   - id события
      * @param commentId - id комментария
      */
     public void deleteComment(int userId, int eventId, int commentId) {
         Comment comment = commentJpaRepository.findById(commentId)
-                .orElseThrow(()-> new ElementNotFoundException("Комментарий с Id="+commentId+" не найден")); //взяли комментарий из репозитория
+                .orElseThrow(() -> new ElementNotFoundException("Комментарий с Id=" + commentId + " не найден")); //взяли комментарий из репозитория
 
-        if(comment.getAuthor().getId() != userId || comment.getEvent().getId() != eventId){
+        if (comment.getAuthor().getId() != userId || comment.getEvent().getId() != eventId) {
             throw new BadParameterException("Данные в запросе(userId,eventId) не соответствуют данным в комментарии");
         }
-       commentJpaRepository.deleteById(commentId); //удалили из репозитория комментарий
+        commentJpaRepository.deleteById(commentId); //удалили из репозитория комментарий
     }
 
 }

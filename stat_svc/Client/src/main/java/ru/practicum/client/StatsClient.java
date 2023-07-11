@@ -88,7 +88,6 @@ public class StatsClient {
         Map<Integer, Long> idViewsMap = endpointStatsList.stream()
                 .collect(Collectors.toMap(e -> {
                             String[] splitUri = e.getUri().split("/"); //делим URI /events/1
-                            Arrays.asList(splitUri).forEach(s -> System.out.println("idViewsMap + elements+///+ " + s));
                             return Integer.valueOf(splitUri[splitUri.length - 1]); //берем последний элемент разбитой строки - это id
                         },
                         EndpointStats::getHits));

@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.comment.CommentDto;
-import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.NewEventDto;
-import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.event.*;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateResult;
 import ru.practicum.dto.participationRequest.ParticipationRequestDto;
@@ -74,10 +71,10 @@ public class EventControllerPrivate {
      */
     @GetMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK) //200
-    public EventFullDto getEventByUserAndId(@PathVariable(name = "userId") @Positive int userId,
-                                            @PathVariable(name = "eventId") @Positive int eventId) {
-        EventFullDto eventFullDto = eventService.getByUserAndId(userId, eventId);
-        log.info("Получено событие с Id={} , добавленное пользователем с id={}", eventId, userId);
+    public EventFullDtoWithComments getEventByUserAndId(@PathVariable(name = "userId") @Positive int userId,
+                                                        @PathVariable(name = "eventId") @Positive int eventId) {
+        EventFullDtoWithComments eventFullDto = eventService.getByUserAndId(userId, eventId);
+        log.info("Получено событие с комментариями с eventId={} , добавленное пользователем с id={}", eventId, userId);
         return eventFullDto;
     }
 
