@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ParticipationService {
 
     private final ParticipationJpaRepository participationJpaRepository;
@@ -130,7 +131,7 @@ public class ParticipationService {
      */
     @Transactional
     public void updateAll(List<ParticipationRequestDto> prDtoList, Event event) {
-        /*подготовка данных для массового преобразоывания списка ParticipationRequestDto в ParticipationRequest*/
+        /*Подготовка данных для массового преобразоывания списка ParticipationRequestDto в ParticipationRequest.*/
         /*Собираем пользователей в мапу <userId, User>*/
         List<Integer> userIds = prDtoList.stream()
                 .map(ParticipationRequestDto::getRequester)
@@ -158,7 +159,6 @@ public class ParticipationService {
      * @param userId - id пользователя
      * @return - список заявкок
      */
-    @Transactional
     public List<ParticipationRequestDto> getRequestsByUser(int userId) {
 
         UserDto userDto = userService.getUserById(userId); //взяли  пользователя из репозитория по id

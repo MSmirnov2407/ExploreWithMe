@@ -5,6 +5,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -17,6 +19,9 @@ public class CommentDto {
     @Size(max = 512)
     private String text;
     private String authorName;
+    @NotNull
+    @Positive
     private int eventId;
     LocalDateTime created = LocalDateTime.now();
+    LocalDateTime updated = LocalDateTime.now();
 }

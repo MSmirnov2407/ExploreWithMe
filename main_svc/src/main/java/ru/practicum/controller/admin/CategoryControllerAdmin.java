@@ -37,13 +37,13 @@ public class CategoryControllerAdmin {
     }
 
     /**
-     * УДаление категории по id
+     * Удаление категории по id
      *
      * @param catId - id категории
      */
     @DeleteMapping("/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT) //204
-    public void deleteUser(@PathVariable(name = "catId") int catId) {
+    public void deleteCategory(@PathVariable(name = "catId") int catId) {
         categoryService.deleteById(catId);
         log.info("Удалена категория с Id={}", catId);
     }

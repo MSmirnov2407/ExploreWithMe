@@ -26,4 +26,6 @@ public class Comment {
     private User author; //автор комментария
     @Column(name = "created")
     private LocalDateTime created; //время создания комментария
+    @Column(name = "updated")
+    private LocalDateTime updated; //время изменения комментария
 }

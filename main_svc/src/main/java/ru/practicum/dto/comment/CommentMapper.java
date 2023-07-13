@@ -11,6 +11,7 @@ public class CommentMapper {
 
     /**
      * Преобразование DTO CommentDto в объект Comment
+     *
      * @param commentDto - DTO
      * @return - объект
      */
@@ -20,6 +21,7 @@ public class CommentMapper {
         comment.setAuthor(author);
         comment.setEvent(event);
         comment.setCreated(commentDto.getCreated());
+        comment.setUpdated(commentDto.getUpdated());
         comment.setId(commentDto.getId());
 
         return comment;
@@ -27,6 +29,7 @@ public class CommentMapper {
 
     /**
      * Преобразование объекта Comment в DTO CommentDto
+     *
      * @param comment - объект
      * @return - CommentDto
      */
@@ -35,6 +38,7 @@ public class CommentMapper {
 
         commentDto.setId(comment.getId());
         commentDto.setCreated(comment.getCreated());
+        commentDto.setUpdated(comment.getUpdated());
         commentDto.setText(comment.getText());
         commentDto.setAuthorName(comment.getAuthor().getName());
         commentDto.setEventId(comment.getEvent().getId());

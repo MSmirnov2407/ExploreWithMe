@@ -2,6 +2,7 @@ package ru.practicum.controller.publ;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.service.CompilationService;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/compilations")
 @Slf4j
+@Validated
 public class CompilationControllerPublic {
 
     private final CompilationService compilationService;

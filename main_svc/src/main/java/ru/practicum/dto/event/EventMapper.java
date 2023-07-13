@@ -119,8 +119,8 @@ public class EventMapper {
     /**
      * Преобразование объекта Event в EventFullDtoWithComments
      *
-     * @param event - Объект события
-     * @param views - кол-во просмотров события
+     * @param event    - Объект события
+     * @param views    - кол-во просмотров события
      * @param comments - комментарии к событию
      * @return - DTO события
      */
