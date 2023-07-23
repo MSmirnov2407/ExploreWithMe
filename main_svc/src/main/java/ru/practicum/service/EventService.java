@@ -9,6 +9,8 @@ import ru.practicum.client.StatsClient;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.categoty.CategoryDto;
 import ru.practicum.dto.categoty.CategoryMapper;
+import ru.practicum.dto.comment.CommentDto;
+import ru.practicum.dto.comment.CommentMapper;
 import ru.practicum.dto.event.*;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateResult;
@@ -20,6 +22,7 @@ import ru.practicum.exception.CreateConditionException;
 import ru.practicum.exception.DataConflictException;
 import ru.practicum.exception.ElementNotFoundException;
 import ru.practicum.model.*;
+import ru.practicum.repository.CommentJpaRepository;
 import ru.practicum.repository.EventJpaRepository;
 
 import javax.persistence.EntityManager;
@@ -37,9 +40,11 @@ import static java.time.temporal.ChronoUnit.HOURS;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventService {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventJpaRepository eventJpaRepository;
+    private final CommentJpaRepository commentJpaRepository;
     private final CategoryService categoryService;
     private final UserService userService;
     private final ParticipationService participationService;
@@ -119,17 +124,20 @@ public class EventService {
      *
      * @param userId  - id пользователя
      * @param eventId - id События
-     * @return - список DTO
+     * @return - список DTO событий с комментариями
      */
-    public EventFullDto getByUserAndId(int userId, int eventId) {
+    public EventFullDtoWithComments getByUserAndId(int userId, int eventId) {
         /*получаем событие и кол-во его просмотров*/
         Event event = eventJpaRepository.getByIdAndUserId(eventId, userId); //событие по id и id пользователя
         if (event == null) { //если нет события, кидается исключение
             throw new ElementNotFoundException("События с id=" + eventId + " и initiatorId=" + userId + " не найдено");
         }
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
-
-        return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
+        List<Comment> comments = commentJpaRepository.findAllByEventId(eventId); //запросили все комментарии по событию
+        List<CommentDto> commentDtos = comments.stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList()); //преобразовали в DTO
+        return EventMapper.toFullDtoWithComments(event, idViewsMap.getOrDefault(event.getId(), 0L), commentDtos);
     }
 
     /**
@@ -144,7 +152,27 @@ public class EventService {
                 .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //событие по id
 
         Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+
         return EventMapper.toFullDto(event, idViewsMap.getOrDefault(event.getId(), 0L));
+    }
+
+    /**
+     * Получение события по id, c вложенным списком комментариев к нему
+     *
+     * @param eventId - id события
+     * @return - DTO
+     */
+    public EventFullDtoWithComments getEventWithCommentsById(int eventId) {
+        /*получаем событие и кол-во его просмотров*/
+        Event event = eventJpaRepository.findById(eventId)
+                .orElseThrow(() -> new ElementNotFoundException("События с id=" + eventId + " не найдено")); //событие по id
+
+        Map<Integer, Long> idViewsMap = StatsClient.getMapIdViews(List.of(event.getId())); // получаем через клиента статистики мапу <id события, кол-во просмотров>
+        List<Comment> comments = commentJpaRepository.findAllByEventId(eventId); //запросили все комментарии по событию
+        List<CommentDto> commentDtos = comments.stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList()); //преобразовали в DTO
+        return EventMapper.toFullDtoWithComments(event, idViewsMap.getOrDefault(event.getId(), 0L), commentDtos);
     }
 
     /**
@@ -153,8 +181,8 @@ public class EventService {
      * @param eventId - id события
      * @return - DTO
      */
-    public EventFullDto getEventByIdWithStats(int eventId, HttpServletRequest request) {
-        EventFullDto eventDto = this.getEventById(eventId); //получили запрашиваемое событие в виде DTO
+    public EventFullDtoWithComments getEventByIdWithStats(int eventId, HttpServletRequest request) {
+        EventFullDtoWithComments eventDto = this.getEventWithCommentsById(eventId); //получили запрашиваемое событие в виде DTO
         if (eventDto.getState() != EventState.PUBLISHED) {
             throw new ElementNotFoundException("Событие с id=" + eventId + " не опубликовано");
         }
@@ -407,7 +435,6 @@ public class EventService {
      * @param size        - количество событий в наборе
      * @return - Список DTO
      */
-    @Transactional
     public List<EventFullDto> searchEvents(List<Integer> users, List<String> states, List<Integer> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size) {
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder
@@ -482,7 +509,6 @@ public class EventService {
      * @param size          - количество событий в наборе
      * @return - Список DTO
      */
-    @Transactional
     public List<EventShortDto> searchEventsWithStats(String text, List<Integer> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, String sort, int from, int size, HttpServletRequest request) {
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder(); //создаем CriteriaBuilder

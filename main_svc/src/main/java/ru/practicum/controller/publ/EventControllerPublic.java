@@ -4,8 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventFullDtoWithComments;
 import ru.practicum.dto.event.EventShortDto;
 import ru.practicum.service.EventService;
 
@@ -18,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/events")
 @Slf4j
+@Validated
 public class EventControllerPublic {
     private final EventService eventService;
 
@@ -45,10 +47,10 @@ public class EventControllerPublic {
 
     @GetMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK)
-    public EventFullDto getEvent(@PathVariable(name = "eventId") int eventId,
-                                 HttpServletRequest request) {
-        EventFullDto eventDto = eventService.getEventByIdWithStats(eventId, request);
-        log.info("Получено событие id={}, запрос сохранен в сервисе статистики", eventId);
+    public EventFullDtoWithComments getEvent(@PathVariable(name = "eventId") int eventId,
+                                             HttpServletRequest request) {
+        EventFullDtoWithComments eventDto = eventService.getEventByIdWithStats(eventId, request);
+        log.info("Получено событие id={} с комментариями к нему, запрос сохранен в сервисе статистики", eventId);
         return eventDto;
     }
 }

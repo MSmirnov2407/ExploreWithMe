@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Класс, содержащий статические методоы для преобразования объекта Compilation в его DTO и обратно
+ * Класс, содержащий статические методы для преобразования объекта Compilation в его DTO и обратно
  */
 public class CompilationMapper {
     /**

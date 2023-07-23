@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationService {
     private final CompilationJpaRepository compilationJpaRepository;
     private final EventService eventService;
@@ -116,6 +117,7 @@ public class CompilationService {
      *
      * @param compId - id подборки
      */
+    @Transactional
     public void deleteById(int compId) {
         compilationJpaRepository.findById(compId)
                 .orElseThrow(() -> new ElementNotFoundException("Подборка с id= " + compId + " не найден")); //проверка существаования подборки

@@ -1,3 +1,4 @@
 # java-explore-with-me
 
-Template repository for ExploreWithMe project.
+Ссылка на пул-руквест
+https://github.com/MSmirnov2407/java-explore-with-me/pull/9

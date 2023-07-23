@@ -30,6 +30,7 @@ public class CategoryService {
      * @param newCategoryDto - DTO новой категории
      * @return - DTO созданной Категории
      */
+    @Transactional
     public CategoryDto create(NewCategoryDto newCategoryDto) {
         /*проверка параметров*/
         String name = newCategoryDto.getName();
@@ -42,7 +43,7 @@ public class CategoryService {
     }
 
     /**
-     * УДаление категории по id
+     * Удаление категории по id
      *
      * @param catId - id категории
      */
@@ -52,7 +53,7 @@ public class CategoryService {
         try {
             categoryJpaRepository.deleteById(catId);
         } catch (RuntimeException ex) {
-            throw new DataConflictException("Невозможно удалить категорию. Возможно, существуют связанные события");
+            throw new DataConflictException("Не удалось удалить категорию. Возможно, существуют связанные события");
         }
     }
 

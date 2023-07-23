@@ -1,0 +1,504 @@
+{
+	"info": {
+		"_postman_id": "9862806e-692e-4160-b1f8-0ef87d66a2de",
+		"name": "feature",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "post comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(201); // проверяем утверждение, что код ответа равен 201\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поля id, text,author name, event id, created\", function() {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('text');\r",
+							"pm.expect(target).to.have.property('authorName');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"pm.expect(target).to.have.property('created');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.text).equal(source.text, 'Текст комментария должен соответствовать тексту в запросе');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\":\"comment to event 92\",\r\n    \"eventId\":\"92\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/users/106/comments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"106",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post comment 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(201); // проверяем утверждение, что код ответа равен 201\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поля id, text,author name, event id, created\", function() {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('text');\r",
+							"pm.expect(target).to.have.property('authorName');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"pm.expect(target).to.have.property('created');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.text).equal(source.text, 'Текст комментария должен соответствовать тексту в запросе');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\":\"comment to event 92\",\r\n    \"eventId\":\"92\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/users/106/comments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"106",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "post comment 3",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(201); // проверяем утверждение, что код ответа равен 201\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поля id, text,author name, event id, created\", function() {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('text');\r",
+							"pm.expect(target).to.have.property('authorName');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"pm.expect(target).to.have.property('created');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.text).equal(source.text, 'Текст комментария должен соответствовать тексту в запросе');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\":\"comment to event 92\",\r\n    \"eventId\":\"92\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/users/106/comments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"106",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "patch comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function() {\r",
+							"pm.response.to.be.ok; // проверяем утверждение, что код ответа равен 200 OK\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поля id, text,author name, event id, created\", function() {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('text');\r",
+							"pm.expect(target).to.have.property('authorName');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"pm.expect(target).to.have.property('created');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.text).equal(source.text, 'Текст комментария должен соответствовать тексту в запросе');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\":\"new text for comment\",\r\n    \"eventId\":\"92\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/users/106/comments/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"106",
+						"comments",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete comment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 204\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(204);  // проверяем утверждение, что код ответа равен 204\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/users/106/comments/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"106",
+						"comments",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete comment by Admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 204\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(204);  // проверяем утверждение, что код ответа равен 204\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/admin/comments/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"admin",
+						"comments",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "public get event with comments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function() {\r",
+							"pm.response.to.be.ok; // проверяем утверждение, что код ответа равен 200 OK\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поле comments - массив комментариев\", function() {\r",
+							"pm.expect(target).to.have.property('comments');\r",
+							"pm.expect(target.comments).is.an('array');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Событие имеет нужный id и Комментарии к событию не должны быть пустыми\", function () {\r",
+							"    pm.expect(target.id).equal(92);\r",
+							"    pm.expect(target.comments).not.to.be.null;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/events/92",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"events",
+						"92"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "private get event with comments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function() {\r",
+							"pm.response.to.be.ok; // проверяем утверждение, что код ответа равен 200 OK\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поле comments - массив комментариев\", function() {\r",
+							"pm.expect(target).to.have.property('comments');\r",
+							"pm.expect(target.comments).is.an('array');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Событие имеет нужный id и Комментарии к событию не должны быть пустыми\", function () {\r",
+							"    pm.expect(target.id).equal(92);\r",
+							"    pm.expect(target.comments).not.to.be.null;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/users/114/events/92",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"users",
+						"114",
+						"events",
+						"92"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get comment by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json(); // получаем тело ответа в формате JSON\r",
+							"\r",
+							"// описываем отдельный тест-кейс и перечисляем проверяемые утверждения\r",
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function() {\r",
+							"pm.expect(pm.response.code).to.equal(200); // проверяем утверждение, что код ответа равен 200\r",
+							"pm.response.to.be.withBody; //налличие тела ответа\r",
+							"pm.response.to.be.json; //данные в ответе в формате JSON\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"//ответ должен содержать поля id, text,author name, event id, created\r",
+							"pm.test(\"Ответ должен содержать поля id, text,author name, event id, created\", function() {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('text');\r",
+							"pm.expect(target).to.have.property('authorName');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"pm.expect(target).to.have.property('created');\r",
+							"});\r",
+							"\r",
+							"//ответ должен содержать Комментарий с id=3\r",
+							"pm.test(\"Ответ должен содержать Комментарий с id=3\", function() {\r",
+							"pm.expect(target.id).to.equal(3); \r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/comments/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"comments",
+						"3"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

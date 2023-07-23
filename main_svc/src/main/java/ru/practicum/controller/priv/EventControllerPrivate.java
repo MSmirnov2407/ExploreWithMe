@@ -4,11 +4,9 @@ package ru.practicum.controller.priv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.event.EventFullDto;
-import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.dto.event.NewEventDto;
-import ru.practicum.dto.event.UpdateEventUserRequest;
+import ru.practicum.dto.event.*;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateRequest;
 import ru.practicum.dto.participationRequest.EventRequestStatusUpdateResult;
 import ru.practicum.dto.participationRequest.ParticipationRequestDto;
@@ -22,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/users/{userId}/events")
 @Slf4j
+@Validated
 public class EventControllerPrivate {
     private final EventService eventService;
 
@@ -57,8 +56,8 @@ public class EventControllerPrivate {
     @GetMapping
     @ResponseStatus(HttpStatus.OK) //200
     public List<EventShortDto> getEventsByUser(@PathVariable(name = "userId") @Positive int userId,
-                                               @RequestParam(name = "from", defaultValue = "0") @Positive int from,
-                                               @RequestParam(name = "size", defaultValue = "10") @PositiveOrZero int size) {
+                                               @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
+                                               @RequestParam(name = "size", defaultValue = "10") @Positive int size) {
         List<EventShortDto> eventShortDtos = eventService.getAllByUser(userId, from, size);
         log.info("Получен список событий, добавленных пользователем с id={}", userId);
         return eventShortDtos;
@@ -73,10 +72,10 @@ public class EventControllerPrivate {
      */
     @GetMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK) //200
-    public EventFullDto getEventByUserAndId(@PathVariable(name = "userId") @Positive int userId,
-                                            @PathVariable(name = "eventId") @Positive int eventId) {
-        EventFullDto eventFullDto = eventService.getByUserAndId(userId, eventId);
-        log.info("Получено событие с Id={} , добавленное пользователем с id={}", eventId, userId);
+    public EventFullDtoWithComments getEventByUserAndId(@PathVariable(name = "userId") @Positive int userId,
+                                                        @PathVariable(name = "eventId") @Positive int eventId) {
+        EventFullDtoWithComments eventFullDto = eventService.getByUserAndId(userId, eventId);
+        log.info("Получено событие с комментариями с eventId={} , добавленное пользователем с id={}", eventId, userId);
         return eventFullDto;
     }
 
@@ -118,5 +117,6 @@ public class EventControllerPrivate {
         log.info("Обновлен статус события с Id={} , добавленное пользователем с id={}. Статус = {}", eventId, userId, statusUpdateRequest.getStatus().toString());
         return updateStatusResult;
     }
+
 
 }
