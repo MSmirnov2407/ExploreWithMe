@@ -1,4 +1,6 @@
-# java-explore-with-me
+# ExploreWithMe
 
-Ссылка на пул-руквест
-https://github.com/MSmirnov2407/java-explore-with-me/pull/9
+Афиша мероприятий для совместного посещения пользователями. REST API
+приложение c разделением на сервисы, с тремя различными API - для неавторизованных
+пользователей, для авторизованных пользователей и админский API. (Sptring Boot, Maven, JPA,
+Hibernate ORM, PostgreSQL, SQL, Docker)
